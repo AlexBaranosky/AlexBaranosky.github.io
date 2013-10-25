@@ -1,0 +1,243 @@
+
+<!DOCTYPE html>
+<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
+<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
+<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <title>Reducing Complexity - My Octopress Blog</title>
+  <meta name="author" content="Your Name">
+
+  
+  <meta name="description" content="I had written some complicated looking code at work recently (shhh, let&#8217;s keep that between us ok?). Something about it didn&#8217;t seem &hellip;">
+  
+
+  <!-- http://t.co/dKP3o1e -->
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  
+  <link rel="canonical" href="http://yoursite.com/blog/2012/12/02/reducing-complexity">
+  <link href="/favicon.png" rel="icon">
+  <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+  <link href="/atom.xml" rel="alternate" title="My Octopress Blog" type="application/atom+xml">
+  <script src="/javascripts/modernizr-2.0.js"></script>
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+  <script>!window.jQuery && document.write(unescape('%3Cscript src="./javascripts/lib/jquery.min.js"%3E%3C/script%3E'))</script>
+  <script src="/javascripts/octopress.js" type="text/javascript"></script>
+  <!--Fonts from Google"s Web font directory at http://google.com/webfonts -->
+<link href="http://fonts.googleapis.com/css?family=PT+Serif:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+<link href="http://fonts.googleapis.com/css?family=PT+Sans:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+
+  
+
+</head>
+
+<body   >
+  <header role="banner"><hgroup>
+  <h1><a href="/">My Octopress Blog</a></h1>
+  
+    <h2>A blogging framework for hackers.</h2>
+  
+</hgroup>
+
+</header>
+  <nav role="navigation"><ul class="subscription" data-subscription="rss">
+  <li><a href="/atom.xml" rel="subscribe-rss" title="subscribe via RSS">RSS</a></li>
+  
+</ul>
+  
+<form action="http://google.com/search" method="get">
+  <fieldset role="search">
+    <input type="hidden" name="q" value="site:yoursite.com" />
+    <input class="search" type="text" name="q" results="0" placeholder="Search"/>
+  </fieldset>
+</form>
+  
+<ul class="main-navigation">
+  <li><a href="/">Blog</a></li>
+  <li><a href="/blog/archives">Archives</a></li>
+</ul>
+
+</nav>
+  <div id="main">
+    <div id="content">
+      <div>
+<article class="hentry" role="article">
+  
+  <header>
+    
+      <h1 class="entry-title">Reducing Complexity</h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2012-12-02T02:33:00-08:00" pubdate data-updated="true">Dec 2<span>nd</span>, 2012</time>
+        
+      </p>
+    
+  </header>
+
+
+<div class="entry-content"><div class='post'>
+<div dir="ltr" style="text-align: left;" trbidi="on"> <p>I had written some complicated looking code at work recently (shhh, let&#8217;s keep that between us ok?). Something about it didn&#8217;t seem right to me, but I was busy at the time so I wrote a TODO to come back and find a way to make it simpler.</p> <p>Since the code is so confusing it is virtually impossible to read at a glance and understand its intent, I will explain what it does.  It takes in a map where the keys are numbers of days over a given SLA, and the values are the number of shipments that were over the SLA by that amount of days.  The map actually can and does have more keys on it than that, but for the purposes of this article we can ignore them.  The function takes that map and converts it to a version where the values are not counts of the individual SLA, but instead the current running percentage totals.</p> An example:  <script class="brush: clj; gutter: false;" type="syntaxhighlighter"><![CDATA[   (cumulative-percentage-past-SLA-map {:past-SLA-1 2 :past-SLA-2 1 :past-SLA-3 3} 4 10)   ;; => {:past-SLA-1 0.60 :past-SLA-2 0.70 :past-SLA-3 100.0} ]]></script> <p>What makes this code end up so complicated is that it is complecting three things: generating the series of sums, dividing them, and creating a new map to return.</p> <br/><pre class="brush: clj; gutter: false;"><br />(def ^:private all-past-SLA-x-keys [:past-SLA-1 :past-SLA-2 :past-SLA-3])<br /><br />(defn- cumulative-percentage-past-SLA-map<br />  "Takes a count-based report and generates percentages that accumulate."<br />  [count-based-past-SLA-map met-SLA total-shipments]<br />  (-> (reduce (fn [[past-SLA-map total-past-SLA-so-far] days-past-key]<br />                (let [updated-past-SLA-map (update-in past-SLA-map<br />                                                      [days-past-key]<br />                                                      #(/ (+ total-past-SLA-so-far %) total-shipments))<br />                      updated-total-past-SLA (+ total-past-SLA-so-far (get past-SLA-map days-past-key))]<br />                  [updated-past-SLA-map updated-total-past-SLA]))<br />              [count-based-past-SLA-map met-SLA]<br />              all-past-SLA-x-keys)<br />      first))<br /></pre><br/> <h3>The solution is to break those 3 parts up.</h3> <p>First we generate the series of sums using <a href="http://clojuredocs.org/clojure_core/clojure.core/reductions">reductions</a>.</p> <p>Second, we divide each by the total to convert them to percentages.</p> <p>Thirdly, we create a new map with percents as the values instead of counts.</p> <br/><pre class="brush: clj; gutter: false;"><br />(defn- cumulative-percentage-past-SLA-map<br />  "Takes a count-based report and generates percentages that accumulate."<br />  [count-based-past-SLA-map num-met-SLA total-shipments]<br />  (let [counts (map #(get count-based-past-SLA-map %) all-past-SLA-x-keys)<br />        running-totals (rest (reductions + num-met-SLA counts))<br />        percents (map #(/ % total-shipments) running-totals)]<br />    (zipmap all-past-SLA-x-keys<br />            percents)))<br /></pre><br/> <p>Another thing you might notice in this code is that I purposely used the more verbose `#(get count-based-past-SLA-map %)` when I could have just used `count-based-past-SLA-map`, as it is already a function!  I prefer to err on the side of making my code as obvious as possible, so I try to avoid using data structures as functions except under a few special cases. But I guess that would be a different topic for a different blog.</p> </div></div>
+<h2>Comments</h2>
+<div class='comments'>
+<div class='comment'>
+<div class='author'>Alex Baranosky</div>
+<div class='content'>
+I would probably do it that way if I wrote it today, too, without the `get`.  But I don&#39;t think it is a huge deal either way.</div>
+</div>
+<div class='comment'>
+<div class='author'>Timothy Baldridge</div>
+<div class='content'>
++1 I&#39;d rather treat functions as maps, than introduce syntactic sugar with #() and %.</div>
+</div>
+<div class='comment'>
+<div class='author'>Alex Baranosky</div>
+<div class='content'>
+IMO this is an area where Clojure idioms venture into &quot;fancy&quot; territory.  It is a little Perlish.  At the end of the day it is a stylistic concern  and that kind of stuff is something that depends on what your team is most comfortable with. YMMV.</div>
+</div>
+<div class='comment'>
+<div class='author'>Unknown</div>
+<div class='content'>
+I don&#39;t agree with the last part&#8230; In clojure you just don&#39;t use get, it is more idiomatic the other way. Using get just make it more confusing IMHO</div>
+</div>
+</div>
+</div>
+
+
+  <footer>
+    <p class="meta">
+      
+  
+
+<span class="byline author vcard">Posted by <span class="fn">Your Name</span></span>
+
+      
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2012-12-02T02:33:00-08:00" pubdate data-updated="true">Dec 2<span>nd</span>, 2012</time>
+      
+
+<span class="categories">
+  
+    <a class='category' href='/blog/categories/clojure/'>clojure</a>
+  
+</span>
+
+
+    </p>
+    
+      <div class="sharing">
+  
+  <a href="//twitter.com/share" class="twitter-share-button" data-url="http://yoursite.com/blog/2012/12/02/reducing-complexity/" data-via="" data-counturl="http://yoursite.com/blog/2012/12/02/reducing-complexity/" >Tweet</a>
+  
+  
+  
+</div>
+
+    
+    <p class="meta">
+      
+        <a class="basic-alignment left" href="/blog/2012/02/27/many-faces-of-midje-fakes/" title="Previous Post: The Many Faces of Midje Fakes">&laquo; The Many Faces of Midje Fakes</a>
+      
+      
+        <a class="basic-alignment right" href="/blog/2012/12/26/slamhound-130-cleaning-up-all-your/" title="Next Post: Slamhound 1.3.0 - Cleaning up all your namespaces">Slamhound 1.3.0 - Cleaning up all your namespaces &raquo;</a>
+      
+    </p>
+  </footer>
+</article>
+
+</div>
+
+<aside class="sidebar">
+  
+    <section>
+  <h1>Recent Posts</h1>
+  <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/blog/2013/08/17/a-mathematical-jaunt-via-san-mateo/">A Mathematical Jaunt via San Mateo Parking Meters</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2013/08/08/io-as-data/">IO as Data</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2013/07/28/the-evolution-of-macro/">The Evolution of a Macro</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2012/12/26/slamhound-130-cleaning-up-all-your/">Slamhound 1.3.0 - Cleaning Up All Your Namespaces</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2012/12/02/reducing-complexity/">Reducing Complexity</a>
+      </li>
+    
+  </ul>
+</section>
+
+
+
+
+
+  
+</aside>
+
+
+    </div>
+  </div>
+  <footer role="contentinfo"><p>
+  Copyright &copy; 2013 - Your Name -
+  <span class="credit">Powered by <a href="http://octopress.org">Octopress</a></span>
+</p>
+
+</footer>
+  
+
+
+
+
+
+
+
+  <script type="text/javascript">
+    (function(){
+      var twitterWidgets = document.createElement('script');
+      twitterWidgets.type = 'text/javascript';
+      twitterWidgets.async = true;
+      twitterWidgets.src = '//platform.twitter.com/widgets.js';
+      document.getElementsByTagName('head')[0].appendChild(twitterWidgets);
+    })();
+  </script>
+
+
+
+
+
+</body>
+</html>

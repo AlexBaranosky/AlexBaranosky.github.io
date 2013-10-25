@@ -1,0 +1,233 @@
+
+<!DOCTYPE html>
+<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
+<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
+<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <title>IO as Data - My Octopress Blog</title>
+  <meta name="author" content="Your Name">
+
+  
+  <meta name="description" content="One way to make your Clojure code easier to test and to reason about is to quarantine your IO. Amongst your team decide where you think the &hellip;">
+  
+
+  <!-- http://t.co/dKP3o1e -->
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  
+  <link rel="canonical" href="http://yoursite.com/blog/2013/08/08/io-as-data">
+  <link href="/favicon.png" rel="icon">
+  <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+  <link href="/atom.xml" rel="alternate" title="My Octopress Blog" type="application/atom+xml">
+  <script src="/javascripts/modernizr-2.0.js"></script>
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+  <script>!window.jQuery && document.write(unescape('%3Cscript src="./javascripts/lib/jquery.min.js"%3E%3C/script%3E'))</script>
+  <script src="/javascripts/octopress.js" type="text/javascript"></script>
+  <!--Fonts from Google"s Web font directory at http://google.com/webfonts -->
+<link href="http://fonts.googleapis.com/css?family=PT+Serif:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+<link href="http://fonts.googleapis.com/css?family=PT+Sans:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+
+  
+
+</head>
+
+<body   >
+  <header role="banner"><hgroup>
+  <h1><a href="/">My Octopress Blog</a></h1>
+  
+    <h2>A blogging framework for hackers.</h2>
+  
+</hgroup>
+
+</header>
+  <nav role="navigation"><ul class="subscription" data-subscription="rss">
+  <li><a href="/atom.xml" rel="subscribe-rss" title="subscribe via RSS">RSS</a></li>
+  
+</ul>
+  
+<form action="http://google.com/search" method="get">
+  <fieldset role="search">
+    <input type="hidden" name="q" value="site:yoursite.com" />
+    <input class="search" type="text" name="q" results="0" placeholder="Search"/>
+  </fieldset>
+</form>
+  
+<ul class="main-navigation">
+  <li><a href="/">Blog</a></li>
+  <li><a href="/blog/archives">Archives</a></li>
+</ul>
+
+</nav>
+  <div id="main">
+    <div id="content">
+      <div>
+<article class="hentry" role="article">
+  
+  <header>
+    
+      <h1 class="entry-title">IO as Data</h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2013-08-08T23:51:00-07:00" pubdate data-updated="true">Aug 8<span>th</span>, 2013</time>
+        
+      </p>
+    
+  </header>
+
+
+<div class="entry-content"><div class='post'>
+<div dir="ltr" style="text-align: left;" trbidi="on"> <p>One way to make your Clojure code easier to test and to reason about is to quarantine your IO.  Amongst your team decide where you think the acceptable boundaries for IO are, and then don&#8217;t do any IO except in those layers.  In my opinion the place to do IO is in the service layer, as described in Amit Rathore&#8217;s talk at Clojure/West, <a href="http://www.infoq.com/presentations/DDD-Clojure">Domain-Driven Design With Clojure</a>.</p> <p>What this can lead to is code patterned where instead of executing IO straight away, you instead compute IO IOUs: a pure function determines that some piece of IO should occur, and returns that fact encoded in some form of data.</p> <h1 id="abasicexample">A Basic Example</h1> <p>Say we have a map that tracks the inventory changes at a warehouse.  It typically looks like this:</p> <pre>(def an-example-inventory<br />  {:items {12345 <br />           {:product-id 12345<br />            :product-name ""<br />            :quantity 300<br />            ;; ...<br />            }}<br />   :actions {:order-from-factory []}}) ;; this is where the IO data goes<br /><br />(defn remove-item-from-inventory [inventory {:keys [product-id] :as item}]<br />  (if (some-> inventory :items product-id :quantity count (> 0))<br />    (update-in inventory [:items product-id :quantity] dec)<br />    (update-in inventory [:actions :order-from-factory] conj product-id)))</pre> <p>Then at a later stage of processing this code, at an outer layer that deals with IO, we can look over the actions on the inventory map and processes them accordingly.</p> <h1 id="ramificationsofthisstyle">Ramifications of This Style</h1> <p>A cool side effect of this is that if you want to change how your IO gets evaluated it will all be in a handful of well-defined places.  This makes switching out implementation details easier.  Also, it makes converting to asynchronous IO more straightforward if the IO becomes a blocker to the performance of the system. </p> <p>Your code becomes less coupled to implementation details of your IO, and instead talks more about the computed intended effects. Unit testability of the system goes up, because everything except the service layer, is just pure functions and data. </p> <br /></div></div>
+<h2>Comments</h2>
+<div class='comments'>
+<div class='comment'>
+<div class='author'>me</div>
+<div class='content'>
+Yes yes yes yes yes.</div>
+</div>
+<div class='comment'>
+<div class='author'>mbarbieri</div>
+<div class='content'>
+It seems you missed an [ after {:items</div>
+</div>
+</div>
+</div>
+
+
+  <footer>
+    <p class="meta">
+      
+  
+
+<span class="byline author vcard">Posted by <span class="fn">Your Name</span></span>
+
+      
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2013-08-08T23:51:00-07:00" pubdate data-updated="true">Aug 8<span>th</span>, 2013</time>
+      
+
+<span class="categories">
+  
+    <a class='category' href='/blog/categories/clojure/'>clojure</a>, <a class='category' href='/blog/categories/functional-programming/'>functional-programming</a>
+  
+</span>
+
+
+    </p>
+    
+      <div class="sharing">
+  
+  <a href="//twitter.com/share" class="twitter-share-button" data-url="http://yoursite.com/blog/2013/08/08/io-as-data/" data-via="" data-counturl="http://yoursite.com/blog/2013/08/08/io-as-data/" >Tweet</a>
+  
+  
+  
+</div>
+
+    
+    <p class="meta">
+      
+        <a class="basic-alignment left" href="/blog/2013/07/28/the-evolution-of-macro/" title="Previous Post: The Evolution of a Macro">&laquo; The Evolution of a Macro</a>
+      
+      
+        <a class="basic-alignment right" href="/blog/2013/08/17/a-mathematical-jaunt-via-san-mateo/" title="Next Post: A Mathematical Jaunt Via San Mateo Parking Meters">A Mathematical Jaunt Via San Mateo Parking Meters &raquo;</a>
+      
+    </p>
+  </footer>
+</article>
+
+</div>
+
+<aside class="sidebar">
+  
+    <section>
+  <h1>Recent Posts</h1>
+  <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/blog/2013/08/17/a-mathematical-jaunt-via-san-mateo/">A Mathematical Jaunt via San Mateo Parking Meters</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2013/08/08/io-as-data/">IO as Data</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2013/07/28/the-evolution-of-macro/">The Evolution of a Macro</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2012/12/26/slamhound-130-cleaning-up-all-your/">Slamhound 1.3.0 - Cleaning Up All Your Namespaces</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2012/12/02/reducing-complexity/">Reducing Complexity</a>
+      </li>
+    
+  </ul>
+</section>
+
+
+
+
+
+  
+</aside>
+
+
+    </div>
+  </div>
+  <footer role="contentinfo"><p>
+  Copyright &copy; 2013 - Your Name -
+  <span class="credit">Powered by <a href="http://octopress.org">Octopress</a></span>
+</p>
+
+</footer>
+  
+
+
+
+
+
+
+
+  <script type="text/javascript">
+    (function(){
+      var twitterWidgets = document.createElement('script');
+      twitterWidgets.type = 'text/javascript';
+      twitterWidgets.async = true;
+      twitterWidgets.src = '//platform.twitter.com/widgets.js';
+      document.getElementsByTagName('head')[0].appendChild(twitterWidgets);
+    })();
+  </script>
+
+
+
+
+
+</body>
+</html>

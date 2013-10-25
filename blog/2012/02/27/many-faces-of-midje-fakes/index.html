@@ -1,0 +1,228 @@
+
+<!DOCTYPE html>
+<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
+<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
+<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <title>The Many Faces of Midje Fakes - My Octopress Blog</title>
+  <meta name="author" content="Your Name">
+
+  
+  <meta name="description" content="The Midje Clojure testing library enables top-down development, and the primary tool it has for enabling it is the fake.In Midje, you don&#8217;t &hellip;">
+  
+
+  <!-- http://t.co/dKP3o1e -->
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  
+  <link rel="canonical" href="http://yoursite.com/blog/2012/02/27/many-faces-of-midje-fakes">
+  <link href="/favicon.png" rel="icon">
+  <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+  <link href="/atom.xml" rel="alternate" title="My Octopress Blog" type="application/atom+xml">
+  <script src="/javascripts/modernizr-2.0.js"></script>
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+  <script>!window.jQuery && document.write(unescape('%3Cscript src="./javascripts/lib/jquery.min.js"%3E%3C/script%3E'))</script>
+  <script src="/javascripts/octopress.js" type="text/javascript"></script>
+  <!--Fonts from Google"s Web font directory at http://google.com/webfonts -->
+<link href="http://fonts.googleapis.com/css?family=PT+Serif:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+<link href="http://fonts.googleapis.com/css?family=PT+Sans:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+
+  
+
+</head>
+
+<body   >
+  <header role="banner"><hgroup>
+  <h1><a href="/">My Octopress Blog</a></h1>
+  
+    <h2>A blogging framework for hackers.</h2>
+  
+</hgroup>
+
+</header>
+  <nav role="navigation"><ul class="subscription" data-subscription="rss">
+  <li><a href="/atom.xml" rel="subscribe-rss" title="subscribe via RSS">RSS</a></li>
+  
+</ul>
+  
+<form action="http://google.com/search" method="get">
+  <fieldset role="search">
+    <input type="hidden" name="q" value="site:yoursite.com" />
+    <input class="search" type="text" name="q" results="0" placeholder="Search"/>
+  </fieldset>
+</form>
+  
+<ul class="main-navigation">
+  <li><a href="/">Blog</a></li>
+  <li><a href="/blog/archives">Archives</a></li>
+</ul>
+
+</nav>
+  <div id="main">
+    <div id="content">
+      <div>
+<article class="hentry" role="article">
+  
+  <header>
+    
+      <h1 class="entry-title">The Many Faces of Midje Fakes</h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2012-02-27T19:21:00-08:00" pubdate data-updated="true">Feb 27<span>th</span>, 2012</time>
+        
+      </p>
+    
+  </header>
+
+
+<div class="entry-content"><div class='post'>
+The <a href="https://github.com/marick/Midje">Midje</a> Clojure testing library enables top-down development, and the primary tool it has for enabling it is the fake.<br /><br />In Midje, you don&#8217;t have mock objects like you do in object-oriented languages, instead you fake out functions. The simplest way you can fake out functions is by using the provided form within your fact.<br /><br /><h3>Fakes</h3><pre class="brush: clj; gutter: false;"><br />(unfinished doubler)<br /><br />(defn six-times [x]<br />  (* 3 (doubler x)))<br /><br />(fact<br />  (six-times ..n..) => 12<br />  (provided<br />    (doubler ..n..) => 4))<br /></pre> <br/>(Things that look like ..x.. are called Midje metaconstants.  For now just pretend they are constants, or skip to the end of this article for a link to the wiki.)<br /><br />In the above example we&#8217;ve managed to define six-times in terms of a function, doubler, that is not yet defined (it is unfinished).<br /><br />Presumably the next thing we&#8217;d do when designing a piece of software like this is to write the fact for doubler.<br /><pre class="brush: clj; gutter: false;"><br />(fact <br />  (doubler 2) => 4)<br /><br />(defn doubler [n] (* 2 n))<br /></pre><br/>Or perhaps write a more thorough test:<br /><pre class="brush: clj; gutter: false;"><br />(tabular<br />  (fact (doubler n) => result)<br /><br />  n    result<br />  -2   -4<br />  -1   -2<br />  0    0<br />  1    2<br />  2    4<br />  100  200  )<br /></pre><br/>(Tabular is a way to write one fact that runs against multiple input sets.)<br /><br /><h3>The Myriad Uses of Fakes</h3><br />Fakes have other uses besides simple stubbing.<br /><br />They can also be used to verify call counts. Imagine that you want to check that when some data is not valid there are no calls to send-email, but otherwise there will be 1 call sent to each recipient?<br /><br />We can write this kind of test using the :times n prerequisite option. (where n is some non-negative integer) <pre class="brush: clj; gutter: false;"><br />(fact "don't send emails when data is invalid"<br />  (email-job :alex :brian) => irrelevant<br />  (provided<br />    (valid-data?) => false<br />    (email anything) => nil :times 0 ))<br /><br />(fact "when data is valid send one email to each recipient"<br />  (email-job :alex :brian) => irrelevant<br />  (provided<br />    (valid-data?) => true<br />    (email :alex) => nil :times 1<br />    (email :brian) => nil :times 1 ))<br /><br />;; The implementation<br /><br />(unfinished valid-data? email)<br /><br />(defn email-job [& dudes]<br />  (when (valid-data?)<br />    (doseq [d dudes]<br />      (email d))))<br /></pre><br /><h3>Checkers</h3><br />Using checkers we can even expand on the idea of what can be checked by a provided.  In the above examples first we used the anything checker to check that the email function was never called with anything. Then we simply checked that the email function was called with :alex and :brian once each.  <br /><br />In this example we want to check that the query function is called with 10 things that look like query maps. To do that we first need to create our own checker that checks whether the parameter looks like a query. <br/><pre class="brush: clj; gutter: false;"><br />(defchecker a-query [actual]<br />  (and (:target-db actual) (:query-plan actual)))<br /></pre><br />Midje will say that any arg matches this checker if it has a non-false/non-nil :target-db and :query-plan.<br /><br />Let&#8217;s confirm query is called 10 times with params that look like queries.<br /><pre class="brush: clj; gutter: false;"><br />(fact "always sends 10 queries"<br />  (execute-queries) => irrelevant<br />  (provided<br />    (query a-query) => irrelevant :times 10))<br /><br />;; The implementation<br /><br />(unfinished query)<br /><br />(defn execute-queries []<br />  (dotimes [_ 10]<br />    (query {:target-db :foo       ;; this will pass because it looks like a-query<br />            :query-plan :bar})))  ;; but (query {:another "map"}) would not pass<br /><br /><br /></pre><h3>The Fake Chain Gang</h3><br />If you&#8217;ve ever violated The Law of Demeter in an object-oriented language and then tried to use mock objects with the offending class, you may have experienced a chain of mocks.<br /><br />A chain of mocks is when you mock a method on a mock object that itself returns another mock object, that has a method on it mocked to *finally* return the value you want.<br /><br />when(mockA.call()).thenReturn(mockB);<br />when(mockB.call()).thenReturn(mockC);<br />when(mockC.call()).thenReturn(42);<br /><br />In Midje the naive approach might be to write something like:<br /><pre class="brush: clj; gutter: false;"><br />(fact<br />  (foo) => 42<br />  (provided <br />    (baz) => ..a.. ;; remember, just pretend they're constants<br />    (bar ..a..) => ..b..<br />    (qux ..b..) => 42))<br /><br />;; The implementation<br /><br />(unfinished baz bar qux)<br /><br />(defn foo [] <br />  (qux (bar (baz))))<br /></pre><br/>Midje supplies a feature called Folded Prerequisites that enable a nice condensed syntax for this, though it is probably a code smell if you are doing this too often.<br /><pre class="brush: clj; gutter: false;"><br />(fact<br />  (foo) => 42<br />  (provided<br />    (qux (bar (baz))) => 42))<br /></pre><br /><h3>Fakes That Cover Multiple Facts</h3><br />There are other ways to make fakes in Midje as well, by using the background macro and the against-background macros. These give you the ability to write fakes that cover a group of fakes.  I think I&#8217;ll talk about them in another blog though time permitting.<br /><br /><h3>Wiki Links</h3><a href="https://github.com/marick/Midje/wiki/Metaconstants">Metaconstants</a><br /><a href="https://github.com/marick/Midje/wiki/Checkers-within-prerequisites">Using Checkers in Fakes</a><br /><a href="https://github.com/marick/Midje/wiki/Folded-prerequisites">Folded Prerequisites</a></div>
+<h2>Comments</h2>
+<div class='comments'>
+<div class='comment'>
+<div class='author'>Hema Powar</div>
+<div class='content'>
+Hey, saw your write ups. It is quite interesting. Please share your profile at hema.powar@wipro.com if you are looking for job. We have projects for a reputed client in Cupertino CA. Think you might have guessed the client already :-) <br /><br />Reach out to me at 201-272-6303</div>
+</div>
+</div>
+</div>
+
+
+  <footer>
+    <p class="meta">
+      
+  
+
+<span class="byline author vcard">Posted by <span class="fn">Your Name</span></span>
+
+      
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2012-02-27T19:21:00-08:00" pubdate data-updated="true">Feb 27<span>th</span>, 2012</time>
+      
+
+<span class="categories">
+  
+    <a class='category' href='/blog/categories/clojure/'>clojure</a>, <a class='category' href='/blog/categories/midje/'>midje</a>
+  
+</span>
+
+
+    </p>
+    
+      <div class="sharing">
+  
+  <a href="//twitter.com/share" class="twitter-share-button" data-url="http://yoursite.com/blog/2012/02/27/many-faces-of-midje-fakes/" data-via="" data-counturl="http://yoursite.com/blog/2012/02/27/many-faces-of-midje-fakes/" >Tweet</a>
+  
+  
+  
+</div>
+
+    
+    <p class="meta">
+      
+        <a class="basic-alignment left" href="/blog/2012/02/19/tdd-in-midje-in-nutshell/" title="Previous Post: TDD in Midje in a Nutshell">&laquo; TDD in Midje in a Nutshell</a>
+      
+      
+        <a class="basic-alignment right" href="/blog/2012/12/02/reducing-complexity/" title="Next Post: Reducing Complexity">Reducing Complexity &raquo;</a>
+      
+    </p>
+  </footer>
+</article>
+
+</div>
+
+<aside class="sidebar">
+  
+    <section>
+  <h1>Recent Posts</h1>
+  <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/blog/2013/08/17/a-mathematical-jaunt-via-san-mateo/">A Mathematical Jaunt via San Mateo Parking Meters</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2013/08/08/io-as-data/">IO as Data</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2013/07/28/the-evolution-of-macro/">The Evolution of a Macro</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2012/12/26/slamhound-130-cleaning-up-all-your/">Slamhound 1.3.0 - Cleaning Up All Your Namespaces</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2012/12/02/reducing-complexity/">Reducing Complexity</a>
+      </li>
+    
+  </ul>
+</section>
+
+
+
+
+
+  
+</aside>
+
+
+    </div>
+  </div>
+  <footer role="contentinfo"><p>
+  Copyright &copy; 2013 - Your Name -
+  <span class="credit">Powered by <a href="http://octopress.org">Octopress</a></span>
+</p>
+
+</footer>
+  
+
+
+
+
+
+
+
+  <script type="text/javascript">
+    (function(){
+      var twitterWidgets = document.createElement('script');
+      twitterWidgets.type = 'text/javascript';
+      twitterWidgets.async = true;
+      twitterWidgets.src = '//platform.twitter.com/widgets.js';
+      document.getElementsByTagName('head')[0].appendChild(twitterWidgets);
+    })();
+  </script>
+
+
+
+
+
+</body>
+</html>

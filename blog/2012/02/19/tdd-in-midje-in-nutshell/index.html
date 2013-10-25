@@ -1,0 +1,233 @@
+
+<!DOCTYPE html>
+<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
+<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
+<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <title>TDD in Midje in a Nutshell - My Octopress Blog</title>
+  <meta name="author" content="Your Name">
+
+  
+  <meta name="description" content="Midje is a Clojure testing library supporting a top-down mock function style of development, but also equally well supports a bottom-up style.This &hellip;">
+  
+
+  <!-- http://t.co/dKP3o1e -->
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  
+  <link rel="canonical" href="http://yoursite.com/blog/2012/02/19/tdd-in-midje-in-nutshell">
+  <link href="/favicon.png" rel="icon">
+  <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+  <link href="/atom.xml" rel="alternate" title="My Octopress Blog" type="application/atom+xml">
+  <script src="/javascripts/modernizr-2.0.js"></script>
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+  <script>!window.jQuery && document.write(unescape('%3Cscript src="./javascripts/lib/jquery.min.js"%3E%3C/script%3E'))</script>
+  <script src="/javascripts/octopress.js" type="text/javascript"></script>
+  <!--Fonts from Google"s Web font directory at http://google.com/webfonts -->
+<link href="http://fonts.googleapis.com/css?family=PT+Serif:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+<link href="http://fonts.googleapis.com/css?family=PT+Sans:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+
+  
+
+</head>
+
+<body   >
+  <header role="banner"><hgroup>
+  <h1><a href="/">My Octopress Blog</a></h1>
+  
+    <h2>A blogging framework for hackers.</h2>
+  
+</hgroup>
+
+</header>
+  <nav role="navigation"><ul class="subscription" data-subscription="rss">
+  <li><a href="/atom.xml" rel="subscribe-rss" title="subscribe via RSS">RSS</a></li>
+  
+</ul>
+  
+<form action="http://google.com/search" method="get">
+  <fieldset role="search">
+    <input type="hidden" name="q" value="site:yoursite.com" />
+    <input class="search" type="text" name="q" results="0" placeholder="Search"/>
+  </fieldset>
+</form>
+  
+<ul class="main-navigation">
+  <li><a href="/">Blog</a></li>
+  <li><a href="/blog/archives">Archives</a></li>
+</ul>
+
+</nav>
+  <div id="main">
+    <div id="content">
+      <div>
+<article class="hentry" role="article">
+  
+  <header>
+    
+      <h1 class="entry-title">TDD in Midje in a Nutshell</h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2012-02-19T17:41:00-08:00" pubdate data-updated="true">Feb 19<span>th</span>, 2012</time>
+        
+      </p>
+    
+  </header>
+
+
+<div class="entry-content"><div class='post'>
+<a href="https://github.com/marick/Midje">Midje</a> is a Clojure testing library supporting a top-down mock function style of development, but also equally well supports a bottom-up style.<br /><br />This is an introductory article, and depending on the response, there will be more articles about some of the intermediate and advanced features.<br /><br /><h3>Elegant Examples</h3><br />Midje starts with a simple premise: that tests should be elegant and readable.<br /><br />When was the last time you saw code samples like this in somebody&#8217;s blog, gist, or book?<br /><br />EXAMPLE:<br /><i>As you can see the foo function always returns&nbsp;:a-ham-sandwich</i><br /><br />(foo :bar :baz)<br />;=&gt; :a-ham-sandwich<br /><br />As developers, I think we write examples like this, because it reads well to us. We&#8217;re used to this sort of pseudo-code example style, and so we can all tell at a glance what&#8217;s happening.<br /><br />This is where Midje enters. The below is executable Clojure Midje code:<br /><script type="syntaxhighlighter" class="brush: clj; gutter: false;"><![CDATA[ (fact "the foo function always returns :a-ham-sandwich"   (foo :bar :baz) => :a-ham-sandwich) ]]></script>You can take that code, and run it, now, and if you&#8217;ve defined foo, then you can run `lein midje` or use midje-mode in Emacs to confirm that foo does in fact always return :a-ham-sandwich. (Forget for now that this particular fact doesn&#8217;t very well cover every possible input. Using a generated test input style of testing could be very useful here, but that is for another blog.)<br /><br /><h3>Describing Code That Doesn&#8217;t Exist - Yet</h3><br />Let&#8217;s try describing some code that doesn&#8217;t yet exist with these kinds of examples.  I think if we jot down some example cases, it will help us think more clearly about what we&#8217;re trying to get our code doing.<br /><script type="syntaxhighlighter" class="brush: clj; gutter: false;"><![CDATA[ (fact "doubles odd numbers"   (my-func 3) => 6)  (fact "triples even numbers"   (my-func 4) => 12) ]]></script>We can run these examples now. First thing you&#8217;ll notice is that we&#8217;re getting errors; that&#8217;s of course because we have not yet written any code. Let&#8217;s add the my-func function.<br /><pre class="brush: clj; gutter: false;">(defn my-func [n] )<br /></pre>Let&#8217;s be cautious and just try to get one of these facts working first.<br /><pre class="brush: clj; gutter: false;">(defn my-func [n]<br />  (* 2 n))<br /></pre>This seems to work&#8230; but for only the first fact. (There&#8217;s a lot to be said for how effectively TDD can help you to stay focused on the task at hand.)<br /><br />So let&#8217;s get my-func to pass the second fact as well.<br /><pre class="brush: clj; gutter: false;">(defn my-func [n]<br />  (if (odd? n)<br />    (* 2 n)<br />    (* 3 n))<br /></pre>Running those examples again with lein midje or midje mode, we see that they do indeed pass.<br /><br />But there&#8217;s one more thing. There is a little bit of duplication left in my-func. Let&#8217;s take a second, and refactor this a little.<br /><pre class="brush: clj; gutter: false;">(defn my-func [n]<br />  (let [multiplier (if (odd? n) 2 3)]<br />    (* multiplier n))<br /></pre>Now that we&#8217;ve revealed a new concept of a multiplier in our code, it looks like we are done.  Our code works as advertised.<br /><br /><h3>TDD Recap</h3><br />You just learned:<br /><ul><li>how to use Midje facts as a form of executable examples</li><li>how to do TDD</li></ul>Nice.<br /><br />I was sneaky just then. Without letting you know what I was doing, I&#8217;ve walked you through the 4 steps of TDD. Decide what you are testing, write a failing test, make that test pass, refactor the code to have a good design.<br /><br /><h4>TDD Steps:</h4><ol><li>We chose a new piece of functionality we wanted the code to have.</li><li>We wrote a failing test.  We ran it.  We saw it fail. In Midje, we like to think of this step as taking some time to describe the facts of the future version of the code.</li><li>We wrote as little code as possible to make the test pass. In Midje, we think of this step as bringing the code up to date with the new facts.</li><li>We took some time to reorganize the code - giving it better structure, removing duplication, adjusting the naming, etc.</li></ol>Repeat.<br /><br />That&#8217;s TDD in Midje in a nutshell.<br /><br />What did you think? Interested in hearing some more intermediate or advanced TDD and Midje concepts and exercises?<br /><br /><h3>Technicalities</h3><script type="syntaxhighlighter" class="brush: clj; gutter: false;"><![CDATA[  ;; project.clj setup  (defproject my-project "0.1.0"   ;; ...   :dev-dependencies [[lein-midje "1.0.8"]                      [midje "1.4.0-SNAPSHOT"]])   ;; example with ns macro  (ns my-ns.t-core   (:use my-ns.core         midje.sweet))  (fact   (foo :bar :baz) => :a-ham-sandwich) ]]></script></div>
+<h2>Comments</h2>
+<div class='comments'>
+<div class='comment'>
+<div class='author'>id</div>
+<div class='content'>
+Look closely at this screenshot (note: with noscript allowing all scripts except for the notorious google tracking bs) : http://bit.ly/IyQf46<br /><br />&quot;As developers, I think we write examples like this (&#8230;)&quot;<br /><br />As developers, *we* know that to mark up *code* you don&#39;t use a *script* tag.<br />a) as a noscript user, your reader won&#39;t know which of the dozen bs js sources to (temporarily) allow<br />b) even if you allow js, it won&#39;t work. &quot;Can&#39;t find brush for: clj&quot;<br />c) you can&#39;t just read it. No JS: no content? Fail!<br /><br />For a bit of potential syntax highlighting, you break your article. I applaud you, dear developer.</div>
+</div>
+<div class='comment'>
+<div class='author'>nodename.com</div>
+<div class='content'>
+Yes, keep it going!</div>
+</div>
+</div>
+</div>
+
+
+  <footer>
+    <p class="meta">
+      
+  
+
+<span class="byline author vcard">Posted by <span class="fn">Your Name</span></span>
+
+      
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2012-02-19T17:41:00-08:00" pubdate data-updated="true">Feb 19<span>th</span>, 2012</time>
+      
+
+<span class="categories">
+  
+    <a class='category' href='/blog/categories/clojure/'>clojure</a>, <a class='category' href='/blog/categories/midje/'>midje</a>
+  
+</span>
+
+
+    </p>
+    
+      <div class="sharing">
+  
+  <a href="//twitter.com/share" class="twitter-share-button" data-url="http://yoursite.com/blog/2012/02/19/tdd-in-midje-in-nutshell/" data-via="" data-counturl="http://yoursite.com/blog/2012/02/19/tdd-in-midje-in-nutshell/" >Tweet</a>
+  
+  
+  
+</div>
+
+    
+    <p class="meta">
+      
+        <a class="basic-alignment left" href="/blog/2011/10/25/baznex-boston-autonomous-zone-nerd/" title="Previous Post: B.A.Z.N.E.X. - Boston Autonomous Zone Nerd Nexus">&laquo; B.A.Z.N.E.X. - Boston Autonomous Zone Nerd Nexus</a>
+      
+      
+        <a class="basic-alignment right" href="/blog/2012/02/27/many-faces-of-midje-fakes/" title="Next Post: The Many Faces of Midje Fakes">The Many Faces of Midje Fakes &raquo;</a>
+      
+    </p>
+  </footer>
+</article>
+
+</div>
+
+<aside class="sidebar">
+  
+    <section>
+  <h1>Recent Posts</h1>
+  <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/blog/2013/08/17/a-mathematical-jaunt-via-san-mateo/">A Mathematical Jaunt via San Mateo Parking Meters</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2013/08/08/io-as-data/">IO as Data</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2013/07/28/the-evolution-of-macro/">The Evolution of a Macro</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2012/12/26/slamhound-130-cleaning-up-all-your/">Slamhound 1.3.0 - Cleaning Up All Your Namespaces</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2012/12/02/reducing-complexity/">Reducing Complexity</a>
+      </li>
+    
+  </ul>
+</section>
+
+
+
+
+
+  
+</aside>
+
+
+    </div>
+  </div>
+  <footer role="contentinfo"><p>
+  Copyright &copy; 2013 - Your Name -
+  <span class="credit">Powered by <a href="http://octopress.org">Octopress</a></span>
+</p>
+
+</footer>
+  
+
+
+
+
+
+
+
+  <script type="text/javascript">
+    (function(){
+      var twitterWidgets = document.createElement('script');
+      twitterWidgets.type = 'text/javascript';
+      twitterWidgets.async = true;
+      twitterWidgets.src = '//platform.twitter.com/widgets.js';
+      document.getElementsByTagName('head')[0].appendChild(twitterWidgets);
+    })();
+  </script>
+
+
+
+
+
+</body>
+</html>
