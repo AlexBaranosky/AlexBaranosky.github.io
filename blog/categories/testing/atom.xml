@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <feed xmlns="http://www.w3.org/2005/Atom">
 
-  <title><![CDATA[Category: testing | My Octopress Blog]]></title>
+  <title><![CDATA[Category: testing | Lisp Plus Plus]]></title>
   <link href="http://AlexBaranosky.github.io/blog/categories/testing/atom.xml" rel="self"/>
   <link href="http://AlexBaranosky.github.io/"/>
-  <updated>2013-10-24T22:49:43-07:00</updated>
+  <updated>2013-10-25T00:25:06-07:00</updated>
   <id>http://AlexBaranosky.github.io/</id>
   <author>
-    <name><![CDATA[Your Name]]></name>
+    <name><![CDATA[Alex Baranosky]]></name>
     
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
