@@ -570,7 +570,7 @@ expands into something very similar to the composed function solution above.</p>
 <span class='line-number'>12</span>
 </pre></td><td class='code'><pre><code class='clojure'><span class='line'><span class="p">(</span><span class="k">def </span><span class="o">^</span><span class="ss">:private</span> <span class="nv">runtime-test-option-set</span> <span class="p">(</span><span class="nb">set </span><span class="p">(</span><span class="nb">keys </span><span class="nv">option-&gt;setup-and-teardown-fn</span><span class="p">)))</span>
 </span><span class='line'>
-</span><span class='line'><span class="p">(</span><span class="kd">defmacro </span><span class="nv">with-runtime-state</span> <span class="p">[</span><span class="nv">options</span> <span class="o">&amp;</span><span class="nv">amp</span><span class="c1">; body]</span>
+</span><span class='line'><span class="p">(</span><span class="kd">defmacro </span><span class="nv">with-runtime-state</span> <span class="p">[</span><span class="nv">options</span> <span class="o">&amp;</span> <span class="nv">body</span><span class="p">]</span>
 </span><span class='line'> <span class="p">(</span><span class="nb">assert </span><span class="p">(</span><span class="nb">map? </span><span class="nv">options</span><span class="p">)</span>
 </span><span class='line'>     <span class="s">&quot;Options should be a map.&quot;</span><span class="p">)</span>
 </span><span class='line'> <span class="p">(</span><span class="nb">assert </span><span class="p">(</span><span class="nb">every? </span><span class="nv">runtime-test-option-set</span> <span class="p">(</span><span class="nb">keys </span><span class="nv">options</span><span class="p">))</span>
