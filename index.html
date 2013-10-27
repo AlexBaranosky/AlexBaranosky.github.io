@@ -9,7 +9,7 @@
   <meta name="author" content="Alex Baranosky">
 
   
-  <meta name="description" content="The other day some colleagues and I drove into downtown San Mateo for lunch. An interesting decision had to be made: how many quarters to pay the &hellip;">
+  <meta name="description" content="Theeee other day some colleagues and I drove into downtown San Mateo for lunch. An interesting decision had to be made: how many quarters to pay the &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -94,8 +94,66 @@
   </header>
 
 
-  <div class="entry-content"><div class='post'>
-<div dir="ltr" style="text-align: left;" trbidi="on"> <p>The other day some colleagues and I drove into downtown San Mateo for lunch.  An interesting decision had to be made: how many quarters to pay the meter. </p> <p>The price for parking is $0.25 per half hour. Your penny-pinching instincts suggest to only put in 2 quarters.  Let&#8217;s say that a parking ticket for going over the meter is $40.</p> <h1 id="breakingdownthescenario">Breaking Down the Scenario</h1> <p>Let&#8217;s apply a little reasoning and mathematics to this, situation and see what&#8217;s the right amount of quarters to put into the meter.</p> <p>There are 5 possible outcomes:</p> <ol><li>pay $0.50, go under one hour, no ticket: total price $0.50</li><li>pay $0.50, go over one hour, no ticket: total price $0.50</li><li>pay $0.50, go over one hour, get ticket: total price $40.50</li><li>pay $0.75, go under one hour, no ticket: total price $0.75</li><li>pay $0.75, go over one hour, no ticket: total price $0.75</li></ol> <h1 id="conservativeguesstimates">Conservative Guesstimates</h1> <p>Now the fun part.  Let&#8217;s assign rough guesstimates of likelihood for each outcome.</p> <p>Let&#8217;s be generous and say that you only go over one hour 20% of the time, and only 20% of the times you go over do you get a ticket.</p> <p>Let&#8217;s also say that you pay $0.50 half the time and $0.75 half the time.</p> <ol><li>40% probability x $0.50 = $0.20</li><li>8% probability x $0.50 = $0.04</li><li>2% probability x $40.50 = $0.81</li><li>40% probability x $0.75 = $0.30</li><li>10% probability x $0.75 = $0.075</li></ol> <p>Computed average cost: $1.425</p> <p>Even at the conservative rate of ticketing of 20% of time you go over an hour, you still increase your expected rate of pay to almost double, by choosing to pay $0.50 half the time!</p> <h1 id="withvigilantmetermaids">With Vigilant Meter Maids</h1> <p>If instead you think you&#8217;ll get a ticket 75% of the time you go over, the average cost per park becomes a whopping $3.625</p> <ol><li>40% probability x $0.50 = $0.20</li><li>2.5% probability x $0.50 = $0.0125</li><li>7.5% probability x $40.50 = $3.0375</li><li>40% probability x $0.75 = $0.30</li><li>10% probability x $0.75 = $0.075</li></ol> <p>Computed average cost: $3.625</p> <p>So it looks like in general it pays to be safe and pay the extra quarter when parking in downtown San Mateo.</p> <h1 id="furtherprecision">Further Precision</h1> <p>We could expand this further, by considering likelihoods of lunch going over 1.5 hours.  I didn&#8217;t because I think there&#8217;s diminishing returns on investment because the odds of going over 1.5 hours are probably only like 20% of 20% => 4%&#8230;  I&#8217;ll leave that as an exercise for the reader :)</p> <br /></div></div>
+  <div class="entry-content"><p>Theeee other day some colleagues and I drove into downtown San Mateo for lunch.  An interesting decision had to be made: how many quarters to pay the meter.</p>
+
+<p>The price for parking is $0.25 per half hour. Your penny-pinching instincts suggest to only put in 2 quarters.  Let&rsquo;s say that a parking ticket for going over the meter is $40.</p>
+
+<h1>Breaking Down the Scenario</h1>
+
+<p>Let&rsquo;s apply a little reasoning and mathematics to this, situation and see what&rsquo;s the right amount of quarters to put into the meter.</p>
+
+<p>There are 5 possible outcomes:</p>
+
+<ol>
+<li>pay $0.50, go under one hour, no ticket: total price $0.50</li>
+<li>pay $0.50, go over one hour, no ticket: total price $0.50</li>
+<li>pay $0.50, go over one hour, get ticket: total price $40.50</li>
+<li>pay $0.75, go under one hour, no ticket: total price $0.75</li>
+<li>pay $0.75, go over one hour, no ticket: total price $0.75</li>
+</ol>
+
+
+<h1>Conservative Guesstimates</h1>
+
+<p>Now the fun part.  Let&rsquo;s assign rough guesstimates of likelihood for each outcome.</p>
+
+<p>Let&rsquo;s be generous and say that you only go over one hour 20% of the time, and only 20% of the times you go over do you get a ticket.</p>
+
+<p>Let&rsquo;s also say that you pay $0.50 half the time and $0.75 half the time.</p>
+
+<ol>
+<li>40% probability x $0.50 = $0.20</li>
+<li>8% probability x $0.50 = $0.04</li>
+<li>2% probability x $40.50 = $0.81</li>
+<li>40% probability x $0.75 = $0.30</li>
+<li>10% probability x $0.75 = $0.075</li>
+</ol>
+
+
+<p>Computed average cost: $1.425</p>
+
+<p>Even at the conservative rate of ticketing of 20% of time you go over an hour, you still increase your expected rate of pay to almost double, by choosing to pay $0.50 half the time!</p>
+
+<h1>With Vigilant Meter Maids</h1>
+
+<p>If instead you think you&rsquo;ll get a ticket 75% of the time you go over, the average cost per park becomes a whopping $3.625</p>
+
+<ol>
+<li>40% probability x $0.50 = $0.20</li>
+<li>2.5% probability x $0.50 = $0.0125</li>
+<li>7.5% probability x $40.50 = $3.0375</li>
+<li>40% probability x $0.75 = $0.30</li>
+<li>10% probability x $0.75 = $0.075</li>
+</ol>
+
+
+<p>Computed average cost: $3.625</p>
+
+<p>So it looks like in general it pays to be safe and pay the extra quarter when parking in downtown San Mateo.</p>
+
+<h1>Further Precision</h1>
+
+<p>We could expand this further, by considering likelihoods of lunch going over 1.5 hours.  I didn&rsquo;t because I think there&rsquo;s diminishing returns on investment because the odds of going over 1.5 hours are probably only like 20% of 20% => 4%&hellip;  I&rsquo;ll leave that as an exercise for the reader :)</p>
 </div>
   
   
@@ -131,21 +189,52 @@
   </header>
 
 
-  <div class="entry-content"><div class='post'>
-<div dir="ltr" style="text-align: left;" trbidi="on"> <p>One way to make your Clojure code easier to test and to reason about is to quarantine your IO.  Amongst your team decide where you think the acceptable boundaries for IO are, and then don&#8217;t do any IO except in those layers.  In my opinion the place to do IO is in the service layer, as described in Amit Rathore&#8217;s talk at Clojure/West, <a href="http://www.infoq.com/presentations/DDD-Clojure">Domain-Driven Design With Clojure</a>.</p> <p>What this can lead to is code patterned where instead of executing IO straight away, you instead compute IO IOUs: a pure function determines that some piece of IO should occur, and returns that fact encoded in some form of data.</p> <h1 id="abasicexample">A Basic Example</h1> <p>Say we have a map that tracks the inventory changes at a warehouse.  It typically looks like this:</p> <pre>(def an-example-inventory<br />  {:items {12345 <br />           {:product-id 12345<br />            :product-name ""<br />            :quantity 300<br />            ;; ...<br />            }}<br />   :actions {:order-from-factory []}}) ;; this is where the IO data goes<br /><br />(defn remove-item-from-inventory [inventory {:keys [product-id] :as item}]<br />  (if (some-> inventory :items product-id :quantity count (> 0))<br />    (update-in inventory [:items product-id :quantity] dec)<br />    (update-in inventory [:actions :order-from-factory] conj product-id)))</pre> <p>Then at a later stage of processing this code, at an outer layer that deals with IO, we can look over the actions on the inventory map and processes them accordingly.</p> <h1 id="ramificationsofthisstyle">Ramifications of This Style</h1> <p>A cool side effect of this is that if you want to change how your IO gets evaluated it will all be in a handful of well-defined places.  This makes switching out implementation details easier.  Also, it makes converting to asynchronous IO more straightforward if the IO becomes a blocker to the performance of the system. </p> <p>Your code becomes less coupled to implementation details of your IO, and instead talks more about the computed intended effects. Unit testability of the system goes up, because everything except the service layer, is just pure functions and data. </p> <br /></div></div>
-<h2>Comments</h2>
-<div class='comments'>
-<div class='comment'>
-<div class='author'>me</div>
-<div class='content'>
-Yes yes yes yes yes.</div>
-</div>
-<div class='comment'>
-<div class='author'>mbarbieri</div>
-<div class='content'>
-It seems you missed an [ after {:items</div>
-</div>
-</div>
+  <div class="entry-content"><p>One way to make your Clojure code easier to test and to reason about is to quarantine your IO.  Amongst your team decide where you think the acceptable boundaries for IO are, and then don&rsquo;t do any IO except in those layers.  In my opinion the place to do IO is in the service layer, as described in Amit Rathore&rsquo;s talk at Clojure/West, <a href="http://www.infoq.com/presentations/DDD-Clojure">Domain-Driven Design With Clojure</a>.</p>
+
+<p>What this can lead to is code patterned where instead of executing IO straight away, you instead compute IO IOUs: a pure function determines that some piece of IO should occur, and returns that fact encoded in some form of data.</p>
+
+<h1>A Basic Example</h1>
+
+<p>Say we have a map that tracks the inventory changes at a warehouse.  It typically looks like this:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+</pre></td><td class='code'><pre><code class='clojure'><span class='line'><span class="p">(</span><span class="k">def </span><span class="nv">an-example-inventory</span>
+</span><span class='line'>  <span class="p">{</span><span class="ss">:items</span> <span class="p">{</span><span class="mi">12345</span>
+</span><span class='line'>           <span class="p">{</span><span class="ss">:product-id</span> <span class="mi">12345</span>
+</span><span class='line'>            <span class="ss">:product-name</span> <span class="s">&quot;&quot;</span>
+</span><span class='line'>            <span class="ss">:quantity</span> <span class="mi">300</span>
+</span><span class='line'>            <span class="c1">;; ...</span>
+</span><span class='line'>            <span class="p">}}</span>
+</span><span class='line'>   <span class="ss">:actions</span> <span class="p">{</span><span class="ss">:order-from-factory</span> <span class="p">[]}})</span> <span class="c1">;; this is where the IO data goes</span>
+</span><span class='line'>
+</span><span class='line'><span class="p">(</span><span class="kd">defn </span><span class="nv">remove-item-from-inventory</span> <span class="p">[</span><span class="nv">inventory</span> <span class="p">{</span><span class="ss">:keys</span> <span class="p">[</span><span class="nv">product-id</span><span class="p">]</span> <span class="ss">:as</span> <span class="nv">item</span><span class="p">}]</span>
+</span><span class='line'>  <span class="p">(</span><span class="k">if </span><span class="p">(</span><span class="nf">some-&gt;</span> <span class="nv">inventory</span> <span class="ss">:items</span> <span class="nv">product-id</span> <span class="ss">:quantity</span> <span class="nb">count </span><span class="p">(</span><span class="nb">&gt; </span><span class="mi">0</span><span class="p">))</span>
+</span><span class='line'>    <span class="p">(</span><span class="nf">update-in</span> <span class="nv">inventory</span> <span class="p">[</span><span class="ss">:items</span> <span class="nv">product-id</span> <span class="ss">:quantity</span><span class="p">]</span> <span class="nv">dec</span><span class="p">)</span>
+</span><span class='line'>    <span class="p">(</span><span class="nf">update-in</span> <span class="nv">inventory</span> <span class="p">[</span><span class="ss">:actions</span> <span class="ss">:order-from-factory</span><span class="p">]</span> <span class="nb">conj </span><span class="nv">product-id</span><span class="p">)))</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p></p>
+
+<p>Then at a later stage of processing this code, at an outer layer that deals with IO, we can look over the actions on the inventory map and processes them accordingly.</p>
+
+<h1>Ramifications of This Style</h1>
+
+<p>A cool side effect of this is that if you want to change how your IO gets evaluated it will all be in a handful of well-defined places.  This makes switching out implementation details easier.  Also, it makes converting to asynchronous IO more straightforward if the IO becomes a blocker to the performance of the system.</p>
+
+<p>Your code becomes less coupled to implementation details of your IO, and instead talks more about the computed intended effects. Unit testability of the system goes up, because everything except the service layer, is just pure functions and data.</p>
 </div>
   
   
