@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <feed xmlns="http://www.w3.org/2005/Atom">
 
-  <title><![CDATA[Category: functional-programming | Lisp Plus Plus]]></title>
+  <title><![CDATA[Category: functional-programming | (elegant coding from a more civilized age)]]></title>
   <link href="http://AlexBaranosky.github.io/blog/categories/functional-programming/atom.xml" rel="self"/>
   <link href="http://AlexBaranosky.github.io/"/>
-  <updated>2013-10-27T00:29:30-07:00</updated>
+  <updated>2013-10-27T00:57:28-07:00</updated>
   <id>http://AlexBaranosky.github.io/</id>
   <author>
     <name><![CDATA[Alex Baranosky]]></name>
@@ -39,7 +39,8 @@
 
 <p>   :actions {:order-from-factory []}}) ;; this is where the IO data goes</p>
 
-<p>(defn remove-item-from-inventory [inventory {:keys [product-id] :as item}]
+<p>(defn remove-item-from-inventory
+  [inventory {:keys [product-id] :as item}]
   (if (some-> inventory :items product-id :quantity count (> 0))</p>
 
 <pre><code>(update-in inventory [:items product-id :quantity] dec)

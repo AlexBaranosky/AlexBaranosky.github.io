@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <feed xmlns="http://www.w3.org/2005/Atom">
 
-  <title><![CDATA[Lisp Plus Plus]]></title>
+  <title><![CDATA[(elegant coding from a more civilized age)]]></title>
   <link href="http://AlexBaranosky.github.io/atom.xml" rel="self"/>
   <link href="http://AlexBaranosky.github.io/"/>
-  <updated>2013-10-27T00:29:30-07:00</updated>
+  <updated>2013-10-27T00:57:28-07:00</updated>
   <id>http://AlexBaranosky.github.io/</id>
   <author>
     <name><![CDATA[Alex Baranosky]]></name>
@@ -107,6 +107,7 @@
 <span class='line-number'>11</span>
 <span class='line-number'>12</span>
 <span class='line-number'>13</span>
+<span class='line-number'>14</span>
 </pre></td><td class='code'><pre><code class='clojure'><span class='line'><span class="p">(</span><span class="k">def </span><span class="nv">an-example-inventory</span>
 </span><span class='line'>  <span class="p">{</span><span class="ss">:items</span> <span class="p">{</span><span class="mi">12345</span>
 </span><span class='line'>           <span class="p">{</span><span class="ss">:product-id</span> <span class="mi">12345</span>
@@ -116,7 +117,8 @@
 </span><span class='line'>            <span class="p">}}</span>
 </span><span class='line'>   <span class="ss">:actions</span> <span class="p">{</span><span class="ss">:order-from-factory</span> <span class="p">[]}})</span> <span class="c1">;; this is where the IO data goes</span>
 </span><span class='line'>
-</span><span class='line'><span class="p">(</span><span class="kd">defn </span><span class="nv">remove-item-from-inventory</span> <span class="p">[</span><span class="nv">inventory</span> <span class="p">{</span><span class="ss">:keys</span> <span class="p">[</span><span class="nv">product-id</span><span class="p">]</span> <span class="ss">:as</span> <span class="nv">item</span><span class="p">}]</span>
+</span><span class='line'><span class="p">(</span><span class="kd">defn </span><span class="nv">remove-item-from-inventory</span>
+</span><span class='line'>  <span class="p">[</span><span class="nv">inventory</span> <span class="p">{</span><span class="ss">:keys</span> <span class="p">[</span><span class="nv">product-id</span><span class="p">]</span> <span class="ss">:as</span> <span class="nv">item</span><span class="p">}]</span>
 </span><span class='line'>  <span class="p">(</span><span class="k">if </span><span class="p">(</span><span class="nf">some-&gt;</span> <span class="nv">inventory</span> <span class="ss">:items</span> <span class="nv">product-id</span> <span class="ss">:quantity</span> <span class="nb">count </span><span class="p">(</span><span class="nb">&gt; </span><span class="mi">0</span><span class="p">))</span>
 </span><span class='line'>    <span class="p">(</span><span class="nf">update-in</span> <span class="nv">inventory</span> <span class="p">[</span><span class="ss">:items</span> <span class="nv">product-id</span> <span class="ss">:quantity</span><span class="p">]</span> <span class="nv">dec</span><span class="p">)</span>
 </span><span class='line'>    <span class="p">(</span><span class="nf">update-in</span> <span class="nv">inventory</span> <span class="p">[</span><span class="ss">:actions</span> <span class="ss">:order-from-factory</span><span class="p">]</span> <span class="nb">conj </span><span class="nv">product-id</span><span class="p">)))</span>
@@ -336,7 +338,11 @@ time with code that looks like this.</p>
 <p>We can take the testcase evaluation function and transform it into a function that when called will wrap the evaluate-test-case function in setup and teardown of the rules state.</p>
 
 <figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='clojure'><span class='line'><span class="p">(</span><span class="nf">rules-setup-and-teardown</span> <span class="o">&#39;</span><span class="p">(</span><span class="nf">def-rule</span> <span class="nv">priority-level</span> <span class="mi">5</span><span class="p">)</span> <span class="p">(</span><span class="k">fn </span><span class="p">[]</span> <span class="p">(</span><span class="nf">evalute-test-case</span><span class="p">)))</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class='clojure'><span class='line'><span class="p">(</span><span class="nf">rules-setup-and-teardown</span>
+</span><span class='line'>  <span class="o">&#39;</span><span class="p">(</span><span class="nf">def-rule</span> <span class="nv">priority-level</span> <span class="mi">5</span><span class="p">)</span>
+</span><span class='line'>  <span class="p">(</span><span class="k">fn </span><span class="p">[]</span> <span class="p">(</span><span class="nf">evalute-test-case</span><span class="p">)))</span>
 </span></code></pre></td></tr></table></div></figure>
 
 
@@ -351,9 +357,11 @@ time with code that looks like this.</p>
 <span class='line-number'>7</span>
 <span class='line-number'>8</span>
 <span class='line-number'>9</span>
+<span class='line-number'>10</span>
 </pre></td><td class='code'><pre><code class='clojure'><span class='line'><span class="p">(</span><span class="nf">deftest</span> <span class="nv">test-model-and-level</span>
 </span><span class='line'> <span class="p">(</span><span class="k">let </span><span class="p">[</span><span class="nv">testcase-fn</span> <span class="p">(</span><span class="k">fn </span><span class="p">[]</span>
-</span><span class='line'>                     <span class="p">(</span><span class="nf">is</span> <span class="p">(</span><span class="nb">= </span><span class="nv">true</span> <span class="p">(</span><span class="nf">found-promotion?</span> <span class="p">(</span><span class="nf">legal-customer-session</span><span class="p">)))))</span>
+</span><span class='line'>                     <span class="p">(</span><span class="nf">is</span> <span class="p">(</span><span class="nb">= </span><span class="nv">true</span> <span class="p">(</span><span class="nf">found-promotion?</span>
+</span><span class='line'>                                   <span class="p">(</span><span class="nf">legal-customer-session</span><span class="p">)))))</span>
 </span><span class='line'>       <span class="nv">wrapped-testcase-fn</span>
 </span><span class='line'>         <span class="p">(</span><span class="nf">-&gt;&gt;</span> <span class="nv">testcase-fn</span>
 </span><span class='line'>              <span class="p">(</span><span class="nf">rules-setup-and-teardown</span> <span class="o">&#39;</span><span class="p">(</span><span class="nf">def-rule</span> <span class="nv">priority-level</span> <span class="mi">5</span><span class="p">))</span>
@@ -406,12 +414,12 @@ expands into something very similar to the composed function solution above.</p>
 <span class='line-number'>10</span>
 </pre></td><td class='code'><pre><code class='clojure'><span class='line'><span class="p">(</span><span class="kd">defmacro </span><span class="nv">with-runtime-state</span> <span class="p">[</span><span class="nv">options</span> <span class="o">&amp;</span> <span class="nv">body</span><span class="p">]</span>
 </span><span class='line'> <span class="p">(</span><span class="k">let </span><span class="p">[</span><span class="nv">setup-and-teardowns</span>
-</span><span class='line'>    <span class="c1">;; 1. map each key of the state-map to its corresponding setup-and-teardown fn</span>
+</span><span class='line'>    <span class="c1">;; 1. map each key of the state-map to its a setup-and-teardown fn</span>
 </span><span class='line'>    <span class="p">(</span><span class="nb">for </span><span class="p">[[</span><span class="nv">k</span> <span class="nv">state-value</span><span class="p">]</span> <span class="nv">options</span><span class="p">]</span>
 </span><span class='line'>     <span class="o">`</span><span class="p">((</span><span class="k">fn </span><span class="p">[</span><span class="nv">f#</span><span class="p">]</span>
 </span><span class='line'>       <span class="p">(</span><span class="k">let </span><span class="p">[</span><span class="nv">setup-and-teardown#</span> <span class="p">(</span><span class="nb">get </span><span class="o">~</span><span class="nv">option-&gt;setup-and-teardown-fn</span> <span class="o">~</span><span class="nv">k</span><span class="p">)]</span>
 </span><span class='line'>        <span class="p">(</span><span class="nf">setup-and-teardown#</span> <span class="o">~</span><span class="nv">state-value</span> <span class="nv">f#</span><span class="p">)))))]</span>
-</span><span class='line'>  <span class="c1">;; 2. thread the testcase body function through each wrapper fn, and evaluate it</span>
+</span><span class='line'>  <span class="c1">;; 2. thread the testcase body fn through each wrapper fn, and eval it</span>
 </span><span class='line'>  <span class="o">`</span><span class="p">((</span><span class="nb">-&gt; </span><span class="p">(</span><span class="k">fn </span><span class="p">[]</span> <span class="o">~@</span><span class="nv">body</span><span class="p">)</span>
 </span><span class='line'>     <span class="o">~@</span><span class="nv">setup-and-teardowns</span><span class="p">))))</span>
 </span></code></pre></td></tr></table></div></figure>

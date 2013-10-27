@@ -5,7 +5,7 @@
 <!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
 <head>
   <meta charset="utf-8">
-  <title>The Evolution of a Macro - Lisp Plus Plus</title>
+  <title>The Evolution of a Macro - (elegant coding from a more civilized age)</title>
   <meta name="author" content="Alex Baranosky">
 
   
@@ -19,13 +19,13 @@
 
   
   <link rel="canonical" href="http://AlexBaranosky.github.io/blog/2013/07/28/the-evolution-of-macro">
-  <link href="/favicon.png" rel="icon">
+  <link href="/favicon.ico" rel="icon">
+  
   <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
-  <link href="/atom.xml" rel="alternate" title="Lisp Plus Plus" type="application/atom+xml">
   <script src="/javascripts/modernizr-2.0.js"></script>
-  <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
-  <script>!window.jQuery && document.write(unescape('%3Cscript src="./javascripts/lib/jquery.min.js"%3E%3C/script%3E'))</script>
+  <script src="/javascripts/ender.js"></script>
   <script src="/javascripts/octopress.js" type="text/javascript"></script>
+  <link href="/atom.xml" rel="alternate" title="(elegant coding from a more civilized age)" type="application/atom+xml">
   <!--Fonts from Google"s Web font directory at http://google.com/webfonts -->
 <link href="http://fonts.googleapis.com/css?family=PT+Serif:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
 <link href="http://fonts.googleapis.com/css?family=PT+Sans:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
@@ -34,19 +34,16 @@
 
 </head>
 
-<body   >
+<body   class="no-sidebar"  >
   <header role="banner"><hgroup>
-  <h1><a href="/">Lisp Plus Plus</a></h1>
+  <h1>(elegant coding from a more civilized age)</h1>
   
-    <h2>(elegant coding from a more civilized age)</h2>
+    <h2><a href="/">Lisp++</a></h2>
   
 </hgroup>
 
 </header>
-  <nav role="navigation"><ul class="subscription" data-subscription="rss">
-  <li><a href="/atom.xml" rel="subscribe-rss" title="subscribe via RSS">RSS</a></li>
-  
-</ul>
+  <nav role="navigation">
   
 <form action="http://google.com/search" method="get">
   <fieldset role="search">
@@ -287,7 +284,11 @@ time with code that looks like this.</p>
 <p>We can take the testcase evaluation function and transform it into a function that when called will wrap the evaluate-test-case function in setup and teardown of the rules state.</p>
 
 <figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='clojure'><span class='line'><span class="p">(</span><span class="nf">rules-setup-and-teardown</span> <span class="o">&#39;</span><span class="p">(</span><span class="nf">def-rule</span> <span class="nv">priority-level</span> <span class="mi">5</span><span class="p">)</span> <span class="p">(</span><span class="k">fn </span><span class="p">[]</span> <span class="p">(</span><span class="nf">evalute-test-case</span><span class="p">)))</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class='clojure'><span class='line'><span class="p">(</span><span class="nf">rules-setup-and-teardown</span>
+</span><span class='line'>  <span class="o">&#39;</span><span class="p">(</span><span class="nf">def-rule</span> <span class="nv">priority-level</span> <span class="mi">5</span><span class="p">)</span>
+</span><span class='line'>  <span class="p">(</span><span class="k">fn </span><span class="p">[]</span> <span class="p">(</span><span class="nf">evalute-test-case</span><span class="p">)))</span>
 </span></code></pre></td></tr></table></div></figure>
 
 
@@ -302,9 +303,11 @@ time with code that looks like this.</p>
 <span class='line-number'>7</span>
 <span class='line-number'>8</span>
 <span class='line-number'>9</span>
+<span class='line-number'>10</span>
 </pre></td><td class='code'><pre><code class='clojure'><span class='line'><span class="p">(</span><span class="nf">deftest</span> <span class="nv">test-model-and-level</span>
 </span><span class='line'> <span class="p">(</span><span class="k">let </span><span class="p">[</span><span class="nv">testcase-fn</span> <span class="p">(</span><span class="k">fn </span><span class="p">[]</span>
-</span><span class='line'>                     <span class="p">(</span><span class="nf">is</span> <span class="p">(</span><span class="nb">= </span><span class="nv">true</span> <span class="p">(</span><span class="nf">found-promotion?</span> <span class="p">(</span><span class="nf">legal-customer-session</span><span class="p">)))))</span>
+</span><span class='line'>                     <span class="p">(</span><span class="nf">is</span> <span class="p">(</span><span class="nb">= </span><span class="nv">true</span> <span class="p">(</span><span class="nf">found-promotion?</span>
+</span><span class='line'>                                   <span class="p">(</span><span class="nf">legal-customer-session</span><span class="p">)))))</span>
 </span><span class='line'>       <span class="nv">wrapped-testcase-fn</span>
 </span><span class='line'>         <span class="p">(</span><span class="nf">-&gt;&gt;</span> <span class="nv">testcase-fn</span>
 </span><span class='line'>              <span class="p">(</span><span class="nf">rules-setup-and-teardown</span> <span class="o">&#39;</span><span class="p">(</span><span class="nf">def-rule</span> <span class="nv">priority-level</span> <span class="mi">5</span><span class="p">))</span>
@@ -357,12 +360,12 @@ expands into something very similar to the composed function solution above.</p>
 <span class='line-number'>10</span>
 </pre></td><td class='code'><pre><code class='clojure'><span class='line'><span class="p">(</span><span class="kd">defmacro </span><span class="nv">with-runtime-state</span> <span class="p">[</span><span class="nv">options</span> <span class="o">&amp;</span> <span class="nv">body</span><span class="p">]</span>
 </span><span class='line'> <span class="p">(</span><span class="k">let </span><span class="p">[</span><span class="nv">setup-and-teardowns</span>
-</span><span class='line'>    <span class="c1">;; 1. map each key of the state-map to its corresponding setup-and-teardown fn</span>
+</span><span class='line'>    <span class="c1">;; 1. map each key of the state-map to its a setup-and-teardown fn</span>
 </span><span class='line'>    <span class="p">(</span><span class="nb">for </span><span class="p">[[</span><span class="nv">k</span> <span class="nv">state-value</span><span class="p">]</span> <span class="nv">options</span><span class="p">]</span>
 </span><span class='line'>     <span class="o">`</span><span class="p">((</span><span class="k">fn </span><span class="p">[</span><span class="nv">f#</span><span class="p">]</span>
 </span><span class='line'>       <span class="p">(</span><span class="k">let </span><span class="p">[</span><span class="nv">setup-and-teardown#</span> <span class="p">(</span><span class="nb">get </span><span class="o">~</span><span class="nv">option-&gt;setup-and-teardown-fn</span> <span class="o">~</span><span class="nv">k</span><span class="p">)]</span>
 </span><span class='line'>        <span class="p">(</span><span class="nf">setup-and-teardown#</span> <span class="o">~</span><span class="nv">state-value</span> <span class="nv">f#</span><span class="p">)))))]</span>
-</span><span class='line'>  <span class="c1">;; 2. thread the testcase body function through each wrapper fn, and evaluate it</span>
+</span><span class='line'>  <span class="c1">;; 2. thread the testcase body fn through each wrapper fn, and eval it</span>
 </span><span class='line'>  <span class="o">`</span><span class="p">((</span><span class="nb">-&gt; </span><span class="p">(</span><span class="k">fn </span><span class="p">[]</span> <span class="o">~@</span><span class="nv">body</span><span class="p">)</span>
 </span><span class='line'>     <span class="o">~@</span><span class="nv">setup-and-teardowns</span><span class="p">))))</span>
 </span></code></pre></td></tr></table></div></figure>
@@ -508,7 +511,7 @@ can you also add the clojure label to it, so it will be propagated into Planet C
       
   
 
-<span class="byline author vcard">Posted by <span class="fn">Alex Baranosky</span></span>
+<span class="byline author vcard">Posted by <span class="fn"><a href="/about" title="About the author (Alex Baranosky)" rel="author">Alex Baranosky</a></span></span>
 
       
 
@@ -536,7 +539,7 @@ can you also add the clojure label to it, so it will be propagated into Planet C
     
       <div class="sharing">
   
-  <a href="//twitter.com/share" class="twitter-share-button" data-url="http://AlexBaranosky.github.io/blog/2013/07/28/the-evolution-of-macro/" data-via="" data-counturl="http://AlexBaranosky.github.io/blog/2013/07/28/the-evolution-of-macro/" >Tweet</a>
+  <a href="http://twitter.com/share" class="twitter-share-button" data-url="http://AlexBaranosky.github.io/blog/2013/07/28/the-evolution-of-macro/" data-via="" data-counturl="http://AlexBaranosky.github.io/blog/2013/07/28/the-evolution-of-macro/" >Tweet</a>
   
   
   
@@ -548,49 +551,13 @@ can you also add the clojure label to it, so it will be propagated into Planet C
         <a class="basic-alignment left" href="/blog/2012/12/26/slamhound-130-cleaning-up-all-your/" title="Previous Post: Slamhound 1.3.0 - Cleaning up all your namespaces">&laquo; Slamhound 1.3.0 - Cleaning up all your namespaces</a>
       
       
-        <a class="basic-alignment right" href="/blog/2013/08/08/io-as-data/" title="Next Post: IO as Data">IO as Data &raquo;</a>
+        <a class="basic-alignment right" href="/blog/2013/08/08/io-as-data/" title="next Post: IO as Data">IO as Data &raquo;</a>
       
     </p>
   </footer>
 </article>
 
 </div>
-
-<aside class="sidebar">
-  
-    <section>
-  <h1>Recent Posts</h1>
-  <ul id="recent_posts">
-    
-      <li class="post">
-        <a href="/blog/2013/08/17/a-mathematical-jaunt-via-san-mateo/">A Mathematical Jaunt via San Mateo Parking Meters</a>
-      </li>
-    
-      <li class="post">
-        <a href="/blog/2013/08/08/io-as-data/">IO as Data</a>
-      </li>
-    
-      <li class="post">
-        <a href="/blog/2013/07/28/the-evolution-of-macro/">The Evolution of a Macro</a>
-      </li>
-    
-      <li class="post">
-        <a href="/blog/2012/12/26/slamhound-130-cleaning-up-all-your/">Slamhound 1.3.0 - Cleaning Up All Your Namespaces</a>
-      </li>
-    
-      <li class="post">
-        <a href="/blog/2012/12/02/reducing-complexity/">Reducing Complexity</a>
-      </li>
-    
-  </ul>
-</section>
-
-
-
-
-
-  
-</aside>
 
 
     </div>
@@ -614,7 +581,7 @@ can you also add the clojure label to it, so it will be propagated into Planet C
       var twitterWidgets = document.createElement('script');
       twitterWidgets.type = 'text/javascript';
       twitterWidgets.async = true;
-      twitterWidgets.src = '//platform.twitter.com/widgets.js';
+      twitterWidgets.src = 'http://platform.twitter.com/widgets.js';
       document.getElementsByTagName('head')[0].appendChild(twitterWidgets);
     })();
   </script>
