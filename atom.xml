@@ -4,7 +4,7 @@
   <title><![CDATA[Lisp Plus Plus]]></title>
   <link href="http://AlexBaranosky.github.io/atom.xml" rel="self"/>
   <link href="http://AlexBaranosky.github.io/"/>
-  <updated>2013-10-27T00:13:46-07:00</updated>
+  <updated>2013-10-27T00:29:30-07:00</updated>
   <id>http://AlexBaranosky.github.io/</id>
   <author>
     <name><![CDATA[Alex Baranosky]]></name>
@@ -140,14 +140,385 @@
     <link href="http://AlexBaranosky.github.io/blog/2013/07/28/the-evolution-of-macro/"/>
     <updated>2013-07-28T02:59:00-07:00</updated>
     <id>http://AlexBaranosky.github.io/blog/2013/07/28/the-evolution-of-macro</id>
-    <content type="html"><![CDATA[<div class='post'>
-<div dir="ltr" style="text-align: left;" trbidi="on">At Runa, where I work, I work on a very large Clojure application which we service online merchants with in order to deliver real-time promotions to the browser. &nbsp;The runtime promotion determination core of the application is quite intricate and has both stateful and immutable parts. &nbsp;If not tested properly, you can make the mistake of letting any setup mutable state effect tests other than the intended test case.<br /><br />I thought it&#8217;d be fun to walk you through how I developed a macro to handle this type of situation at work. &nbsp;I think it is a pretty interesting example of how macros can evolve and what considerations might go into how you architect a meaty macro.<br /><br /><i>NOTE: The code has been simplified from the production code to better emphasize the important points.</i><br /><br /><h3 style="text-align: left;">First Stab At a Stateful Test Macro</h3><br />Our first stab at this problem solves the basic initial version of the problem. &nbsp;Often this would be all you need to get the job done. &nbsp;This approach enables us to evaluate our test assertion from within a stateful scope, and we use the finally block of the try-catch to ensure that the rules are always set back to their original state when the test is done.<br /><br /><pre class="brush: clj; gutter: false;">(defmacro with-rules [rules &amp; body]<br />  `(let [old-rules# @rules]<br />     (try<br />       (reset! rules (evaluate-rules ~rules))<br />       ~@body<br />       (finally<br />         (reset! rules old-rules#)))))<br /><br />(deftest test-priority-level<br /> (with-rules (def-rule priority-level 5)<br />  (is (= true (priority-level 5)))))<br /></pre><br />Then if we have some other sort of state, for example machine learning models, we can write another `with-models` macro and combine the macros in a test.<br /><br /><pre class="brush: clj; gutter: false;">(defmacro with-models [models &amp; body]<br /> `(let [old-models# @models]<br />  (try<br />   (reset! models ~models)<br />   ~@body<br />   (finally<br />    (reset! models old-models#)))))<br /><br />(deftest test-model-and-level<br /> (with-rules (def-rule priority-level 5)<br />  (with-models {:a [1 2 3 4 5 6]<br />                :b [7 8 9 10 11 12]} ;; insert fancy math stuff here ;)<br />   (is (= true (found-promotion? (legal-customer-session)))))))<br /></pre><br /><div>Before I make a serious change to the approach we use for this kind of macro, let&#8217;s remove the bloat from these macros and make them lean mean macros with beefier functions to go with them.</div><div><br /></div><pre class="brush: clj; gutter: false;">(defn with-rules* [rules body-fn]<br /> (let [old-rules @rules]<br />  (try<br />   (reset! rules (evaluate-rules rules))<br />   (body-fn)<br />   (finally<br />    (reset! rules old-rules)))))<br /><br />(defmacro with-rules [rules &amp; body]<br /> `(with-rules* ~rules (fn [] ~@body)))<br /><br />(defn with-models* [models body-fn]<br /> (let [old-models @models]<br />  (try<br />   (reset! models models)<br />   (body-fn)<br />   (finally<br />    (reset! models old-models)))))<br /><br />(defmacro with-models [models &amp; body]<br /> `(with-models* ~models (fn [] ~@body)))<br /></pre><br /><div><br />Why? Because macros are harder to read, and not composable.</div><div><br /></div><div>This way of approaching the stateful setup and teardown in our tests gets the job done, but has a couple issues. &nbsp;As soon as we have another source of state we need another with-x macro, and when we combine these together we end up over time with code that looks like this.</div><div><br /></div><pre class="brush: clj; gutter: false;">(deftest test-motherload<br /> (with-x X<br />  (with-y Y<br />   (with-z Z<br />    (with-a A<br />     (with-b B<br />       (is (= 42 (evaluate)))))))))<br /></pre><br />What I really want here is one macro not 5! &nbsp;I&#8217;d like something I can easily extend as new forms of state come up.<br /><br /><h3 style="text-align: left;">Composing Functions For A More Extensible Approach</h3><br />What if we could write test-motherload like this:<br /><br /><pre class="brush: clj; gutter: false;">(deftest test-motherload<br /> (with-runtime-state {:x X :y Y :z Z :a A :b B}<br />  (is (= 42 (evaluate)))))<br /></pre><br />And ideally if a C type of state comes up down the line, it&#8217;ll be straightforward to extend this macro to accomodate it without pulling your hair out dealing with #&#8217;s, ~&#8217;s, @&#8217;s, &#8221;s and `&#8217;s.<br /><br />With a minor change to with-rules* and with-models* we can enable them to be used to compose 0-arity functions into other 0-arity functions.<br /><br /><pre class="brush: clj; gutter: false;">(defn rules-setup-and-teardown [rules body-fn]<br /> (fn []<br />  (let [old-rules @rules]<br />   (try<br />    (reset! rules (evaluate-rules rules))<br />    (body-fn)<br />    (finally<br />     (reset! rules old-rules))))))<br /><br />(defn models-setup-and-teardown [models body-fn]<br /> (fn []<br />  (let [old-models @models]<br />   (try<br />    (reset! models models)<br />    (body-fn)<br />    (finally<br />      (reset! models old-models)))))<br /> </pre><br /><div>We can take the testcase evaluation function and transform it into a function that when called will wrap the evaluate-test-case function in setup and teardown of the rules state.<br /><br /><pre class="brush: clj; gutter: false;"><br />(rules-setup-and-teardown '(def-rule priority-level 5) (fn [] (evalute-test-case)))<br /><br /></pre><br />And we can chain these function compositions together, to incorporate more varieties of setup and teardown as necessary. &nbsp;Note we don&#8217;t need no fancy macros for this (yet).<br /><br /><pre class="brush: clj; gutter: false;">(deftest test-model-and-level<br /> (let [testcase-fn (fn []<br />                     (is (= true (found-promotion? (legal-customer-session)))))<br />       wrapped-testcase-fn <br />         (->> testcase-fn<br />              (rules-setup-and-teardown '(def-rule priority-level 5))<br />              (models-setup-and-teardown {:a [1 2 3 4 5 6]<br />                                          :b [7 8 9 10 11 12]}))]<br />   (wrapped-testcase-fn)))<br /></pre><br />Remember what we&#8217;re aiming for is something more like this:<br /><br /><pre class="brush: clj; gutter: false;">(deftest test-motherload<br /> (with-runtime-state {:x X :y Y :z Z :a A :b B}<br />   (is (= 42 (evaluate)))))<br /></pre><br />This is going to require us to convert the state map, {:x X :y Y :z Z :a A :b B}, into the appropriate setup-and-teardown wrapper functions, and do the wrapping of the body of the macro as well.<br /><br />The first definition option->setup-and-teardown-fn, maps keys from the state map to its corresponding setup-and-teardown function.<br /><br /><pre class="brush: clj; gutter: false;">(def ^:private option->setup-and-teardown-fn<br /> "Add new setup and teardown wrappers here, and the `with-runtime-state`<br />  macro automatically gets a new functionality"<br /> {:rules #'rules-setup-and-teardown<br />  :models #'models-setup-and-teardown})<br /></pre><div><br /></div><div>Finally the macro that makes it all fit together. &nbsp;If you look closely, it macro expands into something very similar to the composed function solution above.</div><div><br /></div><pre class="brush: clj; gutter: false;">(defmacro with-runtime-state [options &amp; body]<br /> (let [setup-and-teardowns<br />    ;; 1. map each key of the state-map to its corresponding setup-and-teardown fn<br />    (for [[k state-value] options]<br />     `((fn [f#]<br />       (let [setup-and-teardown# (get ~option->setup-and-teardown-fn ~k)]<br />        (setup-and-teardown# ~state-value f#)))))]<br />  ;; 2. thread the testcase body function through each wrapper fn, and evaluate it<br />  `((-> (fn [] ~@body)<br />     ~@setup-and-teardowns))))<br /></pre><br />We can make the macro more user friendly with a couple of asserts on the args passed to it. &nbsp;These kinds of assertions are especially nice in macros, because they help make the macro&#8217;s unique syntax easier to use for your teammates without them pulling their hair out.<br /><br />Also, we can be improve it one step further. &nbsp;We&#8217;ll use clojure.core/partial to create the 1-arity setup-and-teardown functions, rather than wrapping each of them within the for expression.<br /><br /><pre class="brush: clj; gutter: false;">(def ^:private runtime-test-option-set (set (keys option->setup-and-teardown-fn)))<br /><br />(defmacro with-runtime-state [options &amp; body]<br /> (assert (map? options)<br />     "Options should be a map.")<br /> (assert (every? runtime-test-option-set (keys options))<br />     "Options should have :rules and/or :feature-bits keys")<br /> (let [setup-and-teardowns<br />    (for [[k state-value] options]<br />     `((partial (get ~option->setup-and-teardown-fn ~k) ~state-value)))]<br />  `((-> (fn [] ~@body)<br />     ~@setup-and-teardowns))))<br /></pre><br /><h3 style=""text-align: left>Refactoring Addendum</h3><br />I thought a little more about this and realized that even this macro is doing too much.  We can actually extract the code that wraps a 0-arity function f in setup-and-teardown functions. In the process we end up with a macro with one line of code that does the heavy lifting and a few more lines of asserts.  <pre class="brush: clj; gutter: false;"><br />(defn wrap-in-setups-and-tear-downs [options f]<br />  (let [setup-and-teardown-fns (for [[k state-value] options]<br />                                 (partial (get option->setup-and-teardown-fn k) <br />                                          state-value))]<br />    (reduce (fn [f' setup-and-teardown-fn]<br />              (setup-and-teardown-fn f'))<br />            f<br />            setup-and-teardown-fns)))<br /><br />(defmacro with-runtime-state [options & body]<br />  (assert (map? options)<br />          "Options should be a map.")<br />  (assert (every? runtime-test-option-set (keys options))<br />          "Options should have :rules and/or :feature-bits keys")<br />  `((wrap-in-setups-and-tear-downs ~options (fn [] ~@body))))<br /></pre> This is a useful step because now we have another higher order function with which to build useful state-management tooling, and we&#8217;ve eliminated more of the potentially confusing macro code. <br /><br /><h3 style="text-align: left;">Takeaways</h3><br />So why go to all this trouble?<br /><br /><ul style="text-align: left;"><li>We&#8217;ve written a macro that is extensible.</li><li>We&#8217;ve minimized actual lines of macro code. Yay!</li><li>We get validation of the state-map keys for free, anytime we extend this with a new setup-and-teardown function.</li><li>Our tests have a clean, uniform, minimal DSL for expressing pre-requisite mutable state.</li></ul><br />How did we do it?<br /><br /><ul style="text-align: left;"><li>We took an essentially functional compositional approach.&nbsp;</li><li>We wrapped it in a layer of syntactic sugar.</li></ul><br />Hope you enjoyed this little code walk through.<br /><br />Comments or questions?</div></div></div>
+    <content type="html"><![CDATA[<p>At Runa, where I work, I work on a very large Clojure application which we service online merchants with in order to deliver real-time promotions to the browser. The runtime promotion determination core of the application is quite intricate and has both stateful and immutable parts. If not tested properly, you can make the mistake of letting any setup mutable state effect tests other than the intended test case.</p>
+
+<p>I thought it&rsquo;d be fun to walk you through how I developed a macro to handle this type of situation at work. I think it is a pretty interesting example of how macros can evolve and what considerations might go into how you architect a meaty macro.</p>
+
+<p><em>NOTE: The code has been simplified from the production code to better emphasize the important points.</em></p>
+
+<h3>First Stab At a Stateful Test Macro</h3>
+
+<p>Our first stab at this problem solves the basic initial version of the problem. Often this would be all you need to get the job done. This approach enables us to evaluate our test assertion from within a stateful scope, and we use the finally block of the try-catch to ensure that the rules are always set back to their original state when the test is done.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+</pre></td><td class='code'><pre><code class='clojure'><span class='line'><span class="p">(</span><span class="kd">defmacro </span><span class="nv">with-rules</span> <span class="p">[</span><span class="nv">rules</span> <span class="o">&amp;</span> <span class="nv">body</span><span class="p">]</span>
+</span><span class='line'>  <span class="o">`</span><span class="p">(</span><span class="k">let </span><span class="p">[</span><span class="nv">old-rules#</span> <span class="err">@</span><span class="nv">rules</span><span class="p">]</span>
+</span><span class='line'>     <span class="p">(</span><span class="nf">try</span>
+</span><span class='line'>       <span class="p">(</span><span class="nf">reset!</span> <span class="nv">rules</span> <span class="p">(</span><span class="nf">evaluate-rules</span> <span class="o">~</span><span class="nv">rules</span><span class="p">))</span>
+</span><span class='line'>       <span class="o">~@</span><span class="nv">body</span>
+</span><span class='line'>       <span class="p">(</span><span class="nf">finally</span>
+</span><span class='line'>         <span class="p">(</span><span class="nf">reset!</span> <span class="nv">rules</span> <span class="nv">old-rules#</span><span class="p">)))))</span>
+</span><span class='line'>
+</span><span class='line'><span class="p">(</span><span class="nf">deftest</span> <span class="nv">test-priority-level</span>
+</span><span class='line'> <span class="p">(</span><span class="nf">with-rules</span> <span class="p">(</span><span class="nf">def-rule</span> <span class="nv">priority-level</span> <span class="mi">5</span><span class="p">)</span>
+</span><span class='line'>  <span class="p">(</span><span class="nf">is</span> <span class="p">(</span><span class="nb">= </span><span class="nv">true</span> <span class="p">(</span><span class="nf">priority-level</span> <span class="mi">5</span><span class="p">)))))</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Then if we have some other sort of state, for example machine learning models, we can write another <code>with-models</code> macro and combine the macros in a test.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+</pre></td><td class='code'><pre><code class='clojure'><span class='line'><span class="p">(</span><span class="kd">defmacro </span><span class="nv">with-models</span> <span class="p">[</span><span class="nv">models</span> <span class="o">&amp;</span> <span class="nv">body</span><span class="p">]</span>
+</span><span class='line'> <span class="o">`</span><span class="p">(</span><span class="k">let </span><span class="p">[</span><span class="nv">old-models#</span> <span class="err">@</span><span class="nv">models</span><span class="p">]</span>
+</span><span class='line'>  <span class="p">(</span><span class="nf">try</span>
+</span><span class='line'>   <span class="p">(</span><span class="nf">reset!</span> <span class="nv">models</span> <span class="o">~</span><span class="nv">models</span><span class="p">)</span>
+</span><span class='line'>   <span class="o">~@</span><span class="nv">body</span>
+</span><span class='line'>   <span class="p">(</span><span class="nf">finally</span>
+</span><span class='line'>    <span class="p">(</span><span class="nf">reset!</span> <span class="nv">models</span> <span class="nv">old-models#</span><span class="p">)))))</span>
+</span><span class='line'>
+</span><span class='line'><span class="p">(</span><span class="nf">deftest</span> <span class="nv">test-model-and-level</span>
+</span><span class='line'> <span class="p">(</span><span class="nf">with-rules</span> <span class="p">(</span><span class="nf">def-rule</span> <span class="nv">priority-level</span> <span class="mi">5</span><span class="p">)</span>
+</span><span class='line'>  <span class="p">(</span><span class="nf">with-models</span> <span class="p">{</span><span class="ss">:a</span> <span class="p">[</span><span class="mi">1</span> <span class="mi">2</span> <span class="mi">3</span> <span class="mi">4</span> <span class="mi">5</span> <span class="mi">6</span><span class="p">]</span>
+</span><span class='line'>                <span class="ss">:b</span> <span class="p">[</span><span class="mi">7</span> <span class="mi">8</span> <span class="mi">9</span> <span class="mi">10</span> <span class="mi">11</span> <span class="mi">12</span><span class="p">]}</span> <span class="c1">;; insert fancy math stuff here ;)</span>
+</span><span class='line'>   <span class="p">(</span><span class="nf">is</span> <span class="p">(</span><span class="nb">= </span><span class="nv">true</span> <span class="p">(</span><span class="nf">found-promotion?</span> <span class="p">(</span><span class="nf">legal-customer-session</span><span class="p">)))))))</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Before I make a serious change to the approach we use for this kind of macro, let&rsquo;s remove the bloat from these macros and make them lean mean macros with beefier functions to go with them.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+</pre></td><td class='code'><pre><code class='clojure'><span class='line'><span class="p">(</span><span class="kd">defn </span><span class="nv">with-rules*</span> <span class="p">[</span><span class="nv">rules</span> <span class="nv">body-fn</span><span class="p">]</span>
+</span><span class='line'> <span class="p">(</span><span class="k">let </span><span class="p">[</span><span class="nv">old-rules</span> <span class="err">@</span><span class="nv">rules</span><span class="p">]</span>
+</span><span class='line'>  <span class="p">(</span><span class="nf">try</span>
+</span><span class='line'>   <span class="p">(</span><span class="nf">reset!</span> <span class="nv">rules</span> <span class="p">(</span><span class="nf">evaluate-rules</span> <span class="nv">rules</span><span class="p">))</span>
+</span><span class='line'>   <span class="p">(</span><span class="nf">body-fn</span><span class="p">)</span>
+</span><span class='line'>   <span class="p">(</span><span class="nf">finally</span>
+</span><span class='line'>    <span class="p">(</span><span class="nf">reset!</span> <span class="nv">rules</span> <span class="nv">old-rules</span><span class="p">)))))</span>
+</span><span class='line'>
+</span><span class='line'><span class="p">(</span><span class="kd">defmacro </span><span class="nv">with-rules</span> <span class="p">[</span><span class="nv">rules</span> <span class="o">&amp;</span> <span class="nv">body</span><span class="p">]</span>
+</span><span class='line'> <span class="o">`</span><span class="p">(</span><span class="nf">with-rules*</span> <span class="o">~</span><span class="nv">rules</span> <span class="p">(</span><span class="k">fn </span><span class="p">[]</span> <span class="o">~@</span><span class="nv">body</span><span class="p">)))</span>
+</span><span class='line'>
+</span><span class='line'><span class="p">(</span><span class="kd">defn </span><span class="nv">with-models*</span> <span class="p">[</span><span class="nv">models</span> <span class="nv">body-fn</span><span class="p">]</span>
+</span><span class='line'> <span class="p">(</span><span class="k">let </span><span class="p">[</span><span class="nv">old-models</span> <span class="err">@</span><span class="nv">models</span><span class="p">]</span>
+</span><span class='line'>  <span class="p">(</span><span class="nf">try</span>
+</span><span class='line'>   <span class="p">(</span><span class="nf">reset!</span> <span class="nv">models</span> <span class="nv">models</span><span class="p">)</span>
+</span><span class='line'>   <span class="p">(</span><span class="nf">body-fn</span><span class="p">)</span>
+</span><span class='line'>   <span class="p">(</span><span class="nf">finally</span>
+</span><span class='line'>    <span class="p">(</span><span class="nf">reset!</span> <span class="nv">models</span> <span class="nv">old-models</span><span class="p">)))))</span>
+</span><span class='line'>
+</span><span class='line'><span class="p">(</span><span class="kd">defmacro </span><span class="nv">with-models</span> <span class="p">[</span><span class="nv">models</span> <span class="o">&amp;</span> <span class="nv">body</span><span class="p">]</span>
+</span><span class='line'> <span class="o">`</span><span class="p">(</span><span class="nf">with-models*</span> <span class="o">~</span><span class="nv">models</span> <span class="p">(</span><span class="k">fn </span><span class="p">[]</span> <span class="o">~@</span><span class="nv">body</span><span class="p">)))</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Why? Because macros are harder to read, and not composable.</p>
+
+<p>This way of approaching the stateful setup and teardown in our tests gets the
+job done, but has a couple issues. As soon as we have another source of state we
+need another with-x macro, and when we combine these together we end up over
+time with code that looks like this.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+</pre></td><td class='code'><pre><code class='clojure'><span class='line'><span class="p">(</span><span class="nf">deftest</span> <span class="nv">test-motherload</span>
+</span><span class='line'> <span class="p">(</span><span class="nf">with-x</span> <span class="nv">X</span>
+</span><span class='line'>  <span class="p">(</span><span class="nf">with-y</span> <span class="nv">Y</span>
+</span><span class='line'>   <span class="p">(</span><span class="nf">with-z</span> <span class="nv">Z</span>
+</span><span class='line'>    <span class="p">(</span><span class="nf">with-a</span> <span class="nv">A</span>
+</span><span class='line'>     <span class="p">(</span><span class="nf">with-b</span> <span class="nv">B</span>
+</span><span class='line'>       <span class="p">(</span><span class="nf">is</span> <span class="p">(</span><span class="nb">= </span><span class="mi">42</span> <span class="p">(</span><span class="nf">evaluate</span><span class="p">)))))))))</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>What I really want here is one macro not 5! I&rsquo;d like something I can easily extend as new forms of state come up.</p>
+
+<h3>Composing Functions For A More Extensible Approach</h3>
+
+<p>What if we could write test-motherload like this:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class='clojure'><span class='line'><span class="p">(</span><span class="nf">deftest</span> <span class="nv">test-motherload</span>
+</span><span class='line'> <span class="p">(</span><span class="nf">with-runtime-state</span> <span class="p">{</span><span class="ss">:x</span> <span class="nv">X</span> <span class="ss">:y</span> <span class="nv">Y</span> <span class="ss">:z</span> <span class="nv">Z</span> <span class="ss">:a</span> <span class="nv">A</span> <span class="ss">:b</span> <span class="nv">B</span><span class="p">}</span>
+</span><span class='line'>  <span class="p">(</span><span class="nf">is</span> <span class="p">(</span><span class="nb">= </span><span class="mi">42</span> <span class="p">(</span><span class="nf">evaluate</span><span class="p">)))))</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>And ideally if a C type of state comes up down the line, it&rsquo;ll be straightforward to extend this macro to accomodate it without pulling your hair out dealing with #&rsquo;s, ~&rsquo;s, @&rsquo;s, &lsquo;&rsquo;s and `&rsquo;s.</p>
+
+<p>With a minor change to with-rules<em> and with-models</em> we can enable them to be used to compose 0-arity functions into other 0-arity functions.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+</pre></td><td class='code'><pre><code class='clojure'><span class='line'><span class="p">(</span><span class="kd">defn </span><span class="nv">rules-setup-and-teardown</span> <span class="p">[</span><span class="nv">rules</span> <span class="nv">body-fn</span><span class="p">]</span>
+</span><span class='line'> <span class="p">(</span><span class="k">fn </span><span class="p">[]</span>
+</span><span class='line'>  <span class="p">(</span><span class="k">let </span><span class="p">[</span><span class="nv">old-rules</span> <span class="err">@</span><span class="nv">rules</span><span class="p">]</span>
+</span><span class='line'>   <span class="p">(</span><span class="nf">try</span>
+</span><span class='line'>    <span class="p">(</span><span class="nf">reset!</span> <span class="nv">rules</span> <span class="p">(</span><span class="nf">evaluate-rules</span> <span class="nv">rules</span><span class="p">))</span>
+</span><span class='line'>    <span class="p">(</span><span class="nf">body-fn</span><span class="p">)</span>
+</span><span class='line'>    <span class="p">(</span><span class="nf">finally</span>
+</span><span class='line'>     <span class="p">(</span><span class="nf">reset!</span> <span class="nv">rules</span> <span class="nv">old-rules</span><span class="p">))))))</span>
+</span><span class='line'>
+</span><span class='line'><span class="p">(</span><span class="kd">defn </span><span class="nv">models-setup-and-teardown</span> <span class="p">[</span><span class="nv">models</span> <span class="nv">body-fn</span><span class="p">]</span>
+</span><span class='line'> <span class="p">(</span><span class="k">fn </span><span class="p">[]</span>
+</span><span class='line'>  <span class="p">(</span><span class="k">let </span><span class="p">[</span><span class="nv">old-models</span> <span class="err">@</span><span class="nv">models</span><span class="p">]</span>
+</span><span class='line'>   <span class="p">(</span><span class="nf">try</span>
+</span><span class='line'>    <span class="p">(</span><span class="nf">reset!</span> <span class="nv">models</span> <span class="nv">models</span><span class="p">)</span>
+</span><span class='line'>    <span class="p">(</span><span class="nf">body-fn</span><span class="p">)</span>
+</span><span class='line'>    <span class="p">(</span><span class="nf">finally</span>
+</span><span class='line'>      <span class="p">(</span><span class="nf">reset!</span> <span class="nv">models</span> <span class="nv">old-models</span><span class="p">)))))</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>We can take the testcase evaluation function and transform it into a function that when called will wrap the evaluate-test-case function in setup and teardown of the rules state.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='clojure'><span class='line'><span class="p">(</span><span class="nf">rules-setup-and-teardown</span> <span class="o">&#39;</span><span class="p">(</span><span class="nf">def-rule</span> <span class="nv">priority-level</span> <span class="mi">5</span><span class="p">)</span> <span class="p">(</span><span class="k">fn </span><span class="p">[]</span> <span class="p">(</span><span class="nf">evalute-test-case</span><span class="p">)))</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>And we can chain these function compositions together, to incorporate more varieties of setup and teardown as necessary. Note we don&rsquo;t need no fancy macros for this (yet).</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+</pre></td><td class='code'><pre><code class='clojure'><span class='line'><span class="p">(</span><span class="nf">deftest</span> <span class="nv">test-model-and-level</span>
+</span><span class='line'> <span class="p">(</span><span class="k">let </span><span class="p">[</span><span class="nv">testcase-fn</span> <span class="p">(</span><span class="k">fn </span><span class="p">[]</span>
+</span><span class='line'>                     <span class="p">(</span><span class="nf">is</span> <span class="p">(</span><span class="nb">= </span><span class="nv">true</span> <span class="p">(</span><span class="nf">found-promotion?</span> <span class="p">(</span><span class="nf">legal-customer-session</span><span class="p">)))))</span>
+</span><span class='line'>       <span class="nv">wrapped-testcase-fn</span>
+</span><span class='line'>         <span class="p">(</span><span class="nf">-&gt;&gt;</span> <span class="nv">testcase-fn</span>
+</span><span class='line'>              <span class="p">(</span><span class="nf">rules-setup-and-teardown</span> <span class="o">&#39;</span><span class="p">(</span><span class="nf">def-rule</span> <span class="nv">priority-level</span> <span class="mi">5</span><span class="p">))</span>
+</span><span class='line'>              <span class="p">(</span><span class="nf">models-setup-and-teardown</span> <span class="p">{</span><span class="ss">:a</span> <span class="p">[</span><span class="mi">1</span> <span class="mi">2</span> <span class="mi">3</span> <span class="mi">4</span> <span class="mi">5</span> <span class="mi">6</span><span class="p">]</span>
+</span><span class='line'>                                          <span class="ss">:b</span> <span class="p">[</span><span class="mi">7</span> <span class="mi">8</span> <span class="mi">9</span> <span class="mi">10</span> <span class="mi">11</span> <span class="mi">12</span><span class="p">]}))]</span>
+</span><span class='line'>   <span class="p">(</span><span class="nf">wrapped-testcase-fn</span><span class="p">)))</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Remember what we&rsquo;re aiming for is something more like this:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class='clojure'><span class='line'><span class="p">(</span><span class="nf">deftest</span> <span class="nv">test-motherload</span>
+</span><span class='line'> <span class="p">(</span><span class="nf">with-runtime-state</span> <span class="p">{</span><span class="ss">:x</span> <span class="nv">X</span> <span class="ss">:y</span> <span class="nv">Y</span> <span class="ss">:z</span> <span class="nv">Z</span> <span class="ss">:a</span> <span class="nv">A</span> <span class="ss">:b</span> <span class="nv">B</span><span class="p">}</span>
+</span><span class='line'>   <span class="p">(</span><span class="nf">is</span> <span class="p">(</span><span class="nb">= </span><span class="mi">42</span> <span class="p">(</span><span class="nf">evaluate</span><span class="p">)))))</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>This is going to require us to convert the state map, {:x X :y Y :z Z :a A :b B}, into the appropriate setup-and-teardown wrapper functions, and do the wrapping of the body of the macro as well.</p>
+
+<p>The first definition option->setup-and-teardown-fn, maps keys from the state map to its corresponding setup-and-teardown function.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class='clojure'><span class='line'><span class="p">(</span><span class="k">def </span><span class="o">^</span><span class="ss">:private</span> <span class="nv">option-&gt;setup-and-teardown-fn</span>
+</span><span class='line'> <span class="s">&quot;Add new setup and teardown wrappers here, and the `with-runtime-state`</span>
+</span><span class='line'><span class="s">  macro automatically gets a new functionality&quot;</span>
+</span><span class='line'> <span class="p">{</span><span class="ss">:rules</span> <span class="o">#</span><span class="ss">&#39;rules-setup-and-teardown</span>
+</span><span class='line'>  <span class="ss">:models</span> <span class="o">#</span><span class="ss">&#39;models-setup-and-teardown</span><span class="p">})</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Finally the macro that makes it all fit together. If you look closely, it macro
+expands into something very similar to the composed function solution above.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+</pre></td><td class='code'><pre><code class='clojure'><span class='line'><span class="p">(</span><span class="kd">defmacro </span><span class="nv">with-runtime-state</span> <span class="p">[</span><span class="nv">options</span> <span class="o">&amp;</span> <span class="nv">body</span><span class="p">]</span>
+</span><span class='line'> <span class="p">(</span><span class="k">let </span><span class="p">[</span><span class="nv">setup-and-teardowns</span>
+</span><span class='line'>    <span class="c1">;; 1. map each key of the state-map to its corresponding setup-and-teardown fn</span>
+</span><span class='line'>    <span class="p">(</span><span class="nb">for </span><span class="p">[[</span><span class="nv">k</span> <span class="nv">state-value</span><span class="p">]</span> <span class="nv">options</span><span class="p">]</span>
+</span><span class='line'>     <span class="o">`</span><span class="p">((</span><span class="k">fn </span><span class="p">[</span><span class="nv">f#</span><span class="p">]</span>
+</span><span class='line'>       <span class="p">(</span><span class="k">let </span><span class="p">[</span><span class="nv">setup-and-teardown#</span> <span class="p">(</span><span class="nb">get </span><span class="o">~</span><span class="nv">option-&gt;setup-and-teardown-fn</span> <span class="o">~</span><span class="nv">k</span><span class="p">)]</span>
+</span><span class='line'>        <span class="p">(</span><span class="nf">setup-and-teardown#</span> <span class="o">~</span><span class="nv">state-value</span> <span class="nv">f#</span><span class="p">)))))]</span>
+</span><span class='line'>  <span class="c1">;; 2. thread the testcase body function through each wrapper fn, and evaluate it</span>
+</span><span class='line'>  <span class="o">`</span><span class="p">((</span><span class="nb">-&gt; </span><span class="p">(</span><span class="k">fn </span><span class="p">[]</span> <span class="o">~@</span><span class="nv">body</span><span class="p">)</span>
+</span><span class='line'>     <span class="o">~@</span><span class="nv">setup-and-teardowns</span><span class="p">))))</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>We can make the macro more user friendly with a couple of asserts on the args passed to it. These kinds of assertions are especially nice in macros, because they help make the macro&rsquo;s unique syntax easier to use for your teammates without them pulling their hair out.</p>
+
+<p>Also, we can be improve it one step further. We&rsquo;ll use clojure.core/partial to create the 1-arity setup-and-teardown functions, rather than wrapping each of them within the for expression.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+</pre></td><td class='code'><pre><code class='clojure'><span class='line'><span class="p">(</span><span class="k">def </span><span class="o">^</span><span class="ss">:private</span> <span class="nv">runtime-test-option-set</span> <span class="p">(</span><span class="nb">set </span><span class="p">(</span><span class="nb">keys </span><span class="nv">option-&gt;setup-and-teardown-fn</span><span class="p">)))</span>
+</span><span class='line'>
+</span><span class='line'><span class="p">(</span><span class="kd">defmacro </span><span class="nv">with-runtime-state</span> <span class="p">[</span><span class="nv">options</span> <span class="o">&amp;</span><span class="nv">amp</span><span class="c1">; body]</span>
+</span><span class='line'> <span class="p">(</span><span class="nb">assert </span><span class="p">(</span><span class="nb">map? </span><span class="nv">options</span><span class="p">)</span>
+</span><span class='line'>     <span class="s">&quot;Options should be a map.&quot;</span><span class="p">)</span>
+</span><span class='line'> <span class="p">(</span><span class="nb">assert </span><span class="p">(</span><span class="nb">every? </span><span class="nv">runtime-test-option-set</span> <span class="p">(</span><span class="nb">keys </span><span class="nv">options</span><span class="p">))</span>
+</span><span class='line'>     <span class="s">&quot;Options should have :rules and/or :feature-bits keys&quot;</span><span class="p">)</span>
+</span><span class='line'> <span class="p">(</span><span class="k">let </span><span class="p">[</span><span class="nv">setup-and-teardowns</span>
+</span><span class='line'>    <span class="p">(</span><span class="nb">for </span><span class="p">[[</span><span class="nv">k</span> <span class="nv">state-value</span><span class="p">]</span> <span class="nv">options</span><span class="p">]</span>
+</span><span class='line'>     <span class="o">`</span><span class="p">((</span><span class="nb">partial </span><span class="p">(</span><span class="nb">get </span><span class="o">~</span><span class="nv">option-&gt;setup-and-teardown-fn</span> <span class="o">~</span><span class="nv">k</span><span class="p">)</span> <span class="o">~</span><span class="nv">state-value</span><span class="p">)))]</span>
+</span><span class='line'>  <span class="o">`</span><span class="p">((</span><span class="nb">-&gt; </span><span class="p">(</span><span class="k">fn </span><span class="p">[]</span> <span class="o">~@</span><span class="nv">body</span><span class="p">)</span>
+</span><span class='line'>     <span class="o">~@</span><span class="nv">setup-and-teardowns</span><span class="p">))))</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h3>Refactoring Addendum</h3>
+
+<p>I thought a little more about this and realized that even this macro is doing
+too much.  We can actually extract the code that wraps a 0-arity function f in
+setup-and-teardown functions. In the process we end up with a macro with one
+line of code that does the heavy lifting and a few more lines of asserts.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+</pre></td><td class='code'><pre><code class='clojure'><span class='line'><span class="p">(</span><span class="kd">defn </span><span class="nv">wrap-in-setups-and-tear-downs</span> <span class="p">[</span><span class="nv">options</span> <span class="nv">f</span><span class="p">]</span>
+</span><span class='line'>  <span class="p">(</span><span class="k">let </span><span class="p">[</span><span class="nv">setup-and-teardown-fns</span> <span class="p">(</span><span class="nb">for </span><span class="p">[[</span><span class="nv">k</span> <span class="nv">state-value</span><span class="p">]</span> <span class="nv">options</span><span class="p">]</span>
+</span><span class='line'>                                 <span class="p">(</span><span class="nb">partial </span><span class="p">(</span><span class="nb">get </span><span class="nv">option-&gt;setup-and-teardown-fn</span> <span class="nv">k</span><span class="p">)</span>
+</span><span class='line'>                                          <span class="nv">state-value</span><span class="p">))]</span>
+</span><span class='line'>    <span class="p">(</span><span class="nb">reduce </span><span class="p">(</span><span class="k">fn </span><span class="p">[</span><span class="nv">f</span><span class="o">&#39;</span> <span class="nv">setup-and-teardown-fn</span><span class="p">]</span>
+</span><span class='line'>              <span class="p">(</span><span class="nf">setup-and-teardown-fn</span> <span class="nv">f</span><span class="o">&#39;</span><span class="p">))</span>
+</span><span class='line'>            <span class="nv">f</span>
+</span><span class='line'>            <span class="nv">setup-and-teardown-fns</span><span class="p">)))</span>
+</span><span class='line'>
+</span><span class='line'><span class="p">(</span><span class="kd">defmacro </span><span class="nv">with-runtime-state</span> <span class="p">[</span><span class="nv">options</span> <span class="o">&amp;</span> <span class="nv">body</span><span class="p">]</span>
+</span><span class='line'>  <span class="p">(</span><span class="nb">assert </span><span class="p">(</span><span class="nb">map? </span><span class="nv">options</span><span class="p">)</span>
+</span><span class='line'>          <span class="s">&quot;Options should be a map.&quot;</span><span class="p">)</span>
+</span><span class='line'>  <span class="p">(</span><span class="nb">assert </span><span class="p">(</span><span class="nb">every? </span><span class="nv">runtime-test-option-set</span> <span class="p">(</span><span class="nb">keys </span><span class="nv">options</span><span class="p">))</span>
+</span><span class='line'>          <span class="s">&quot;Options should have :rules and/or :feature-bits keys&quot;</span><span class="p">)</span>
+</span><span class='line'>  <span class="o">`</span><span class="p">((</span><span class="nf">wrap-in-setups-and-tear-downs</span> <span class="o">~</span><span class="nv">options</span> <span class="p">(</span><span class="k">fn </span><span class="p">[]</span> <span class="o">~@</span><span class="nv">body</span><span class="p">))))</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>This is a useful step because now we have another higher order function with which to build useful state-management tooling, and we&rsquo;ve eliminated more of the potentially confusing macro code.</p>
+
+<h3>Takeaways</h3>
+
+<p>So why go to all this trouble?</p>
+
+<ul>
+<li>We&rsquo;ve written a macro that is extensible.</li>
+<li>We&rsquo;ve minimized actual lines of macro code. Yay!</li>
+<li>We get validation of the state-map keys for free, anytime we extend this with a new setup-and-teardown function.</li>
+<li><p>Our tests have a clean, uniform, minimal DSL for expressing pre-requisite mutable state.
+How did we do it?</p></li>
+<li><p>We took an essentially functional compositional approach.</p></li>
+<li>We wrapped it in a layer of syntactic sugar.
+Hope you enjoyed this little code walk through.</li>
+</ul>
+
+
+<p>Comments or questions?</p>
+
 <h2>Comments</h2>
+
 <div class='comments'>
 <div class='comment'>
 <div class='author'>Petr</div>
 <div class='content'>
-One more reason that using dynamic scope sucks.<br /><br />BTW Have you thought of replacing set of *-setup-and-teardown with set of<br />{:setup (fn [] &#8230;.) :teardown (fn [] &#8230;.)} <br />and not repeating (try &#8230; (finally &#8230;)) every time?</div>
+One more reason that using dynamic scope sucks.
+
+BTW Have you thought of replacing set of *-setup-and-teardown with set of
+{:setup (fn [] &#8230;.) :teardown (fn [] &#8230;.)} 
+and not repeating (try &#8230; (finally &#8230;)) every time?</div>
 </div>
 <div class='comment'>
 <div class='author'>Alex Baranosky</div>
@@ -157,19 +528,27 @@ Thanks.  I have at least got it into a stable state that should no longer break 
 <div class='comment'>
 <div class='author'>regeya</div>
 <div class='content'>
-cannot find brush for: clj<br /><br />That&#39;s the dialog that keeps popping up every time I visit a page on this blog.</div>
+cannot find brush for: clj
+
+That&#39;s the dialog that keeps popping up every time I visit a page on this blog.</div>
 </div>
 <div class='comment'>
 <div class='author'>Alex Baranosky</div>
 <div class='content'>
-Hi Alex, <br /><br />Thanks for the comment.  I actually thought I had added the appropriate tags last evening when I wrote it, but must have not saved my change.</div>
+Hi Alex, 
+
+Thanks for the comment.  I actually thought I had added the appropriate tags last evening when I wrote it, but must have not saved my change.</div>
 </div>
 <div class='comment'>
 <div class='author'>Alex Ott</div>
 <div class='content'>
-Hi <br /><br />thank you for posting this!<br />can you also add the clojure label to it, so it will be propagated into Planet Clojure?</div>
+Hi 
+
+thank you for posting this!
+can you also add the clojure label to it, so it will be propagated into Planet Clojure?</div>
 </div>
 </div>
+
 ]]></content>
   </entry>
   
