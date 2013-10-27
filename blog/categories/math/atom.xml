@@ -4,7 +4,7 @@
   <title><![CDATA[Category: math | (elegant coding from a more civilized age)]]></title>
   <link href="http://AlexBaranosky.github.io/blog/categories/math/atom.xml" rel="self"/>
   <link href="http://AlexBaranosky.github.io/"/>
-  <updated>2013-10-27T01:08:20-07:00</updated>
+  <updated>2013-10-27T11:39:34-07:00</updated>
   <id>http://AlexBaranosky.github.io/</id>
   <author>
     <name><![CDATA[Alex Baranosky]]></name>
@@ -22,7 +22,7 @@
 
 <p>The price for parking is $0.25 per half hour. Your penny-pinching instincts suggest to only put in 2 quarters.  Let&rsquo;s say that a parking ticket for going over the meter is $40.</p>
 
-<h1>Breaking Down the Scenario</h1>
+<h2>Breaking Down the Scenario</h2>
 
 <p>Let&rsquo;s apply a little reasoning and mathematics to this, situation and see what&rsquo;s the right amount of quarters to put into the meter.</p>
 
@@ -37,7 +37,7 @@
 </ol>
 
 
-<h1>Conservative Guesstimates</h1>
+<h2>Conservative Guesstimates</h2>
 
 <p>Now the fun part.  Let&rsquo;s assign rough guesstimates of likelihood for each outcome.</p>
 
@@ -58,7 +58,7 @@
 
 <p>Even at the conservative rate of ticketing of 20% of time you go over an hour, you still increase your expected rate of pay to almost double, by choosing to pay $0.50 half the time!</p>
 
-<h1>With Vigilant Meter Maids</h1>
+<h2>With Vigilant Meter Maids</h2>
 
 <p>If instead you think you&rsquo;ll get a ticket 75% of the time you go over, the average cost per park becomes a whopping $3.625</p>
 
@@ -75,7 +75,7 @@
 
 <p>So it looks like in general it pays to be safe and pay the extra quarter when parking in downtown San Mateo.</p>
 
-<h1>Further Precision</h1>
+<h2>Further Precision</h2>
 
 <p>We could expand this further, by considering likelihoods of lunch going over 1.5 hours.  I didn&rsquo;t because I think there&rsquo;s diminishing returns on investment because the odds of going over 1.5 hours are probably only like 20% of 20% => 4%&hellip;  I&rsquo;ll leave that as an exercise for the reader :)</p>
 ]]></content>

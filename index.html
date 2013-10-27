@@ -95,7 +95,7 @@
 
 <p>The price for parking is $0.25 per half hour. Your penny-pinching instincts suggest to only put in 2 quarters.  Let&rsquo;s say that a parking ticket for going over the meter is $40.</p>
 
-<h1>Breaking Down the Scenario</h1>
+<h2>Breaking Down the Scenario</h2>
 
 <p>Let&rsquo;s apply a little reasoning and mathematics to this, situation and see what&rsquo;s the right amount of quarters to put into the meter.</p>
 
@@ -110,7 +110,7 @@
 </ol>
 
 
-<h1>Conservative Guesstimates</h1>
+<h2>Conservative Guesstimates</h2>
 
 <p>Now the fun part.  Let&rsquo;s assign rough guesstimates of likelihood for each outcome.</p>
 
@@ -131,7 +131,7 @@
 
 <p>Even at the conservative rate of ticketing of 20% of time you go over an hour, you still increase your expected rate of pay to almost double, by choosing to pay $0.50 half the time!</p>
 
-<h1>With Vigilant Meter Maids</h1>
+<h2>With Vigilant Meter Maids</h2>
 
 <p>If instead you think you&rsquo;ll get a ticket 75% of the time you go over, the average cost per park becomes a whopping $3.625</p>
 
@@ -148,7 +148,7 @@
 
 <p>So it looks like in general it pays to be safe and pay the extra quarter when parking in downtown San Mateo.</p>
 
-<h1>Further Precision</h1>
+<h2>Further Precision</h2>
 
 <p>We could expand this further, by considering likelihoods of lunch going over 1.5 hours.  I didn&rsquo;t because I think there&rsquo;s diminishing returns on investment because the odds of going over 1.5 hours are probably only like 20% of 20% => 4%&hellip;  I&rsquo;ll leave that as an exercise for the reader :)</p>
 </div>
@@ -190,7 +190,7 @@
 
 <p>What this can lead to is code patterned where instead of executing IO straight away, you instead compute IO IOUs: a pure function determines that some piece of IO should occur, and returns that fact encoded in some form of data.</p>
 
-<h1>A Basic Example</h1>
+<h2>A Basic Example</h2>
 
 <p>Say we have a map that tracks the inventory changes at a warehouse.  It typically looks like this:</p>
 
@@ -229,7 +229,7 @@
 
 <p>Then at a later stage of processing this code, at an outer layer that deals with IO, we can look over the actions on the inventory map and processes them accordingly.</p>
 
-<h1>Ramifications of This Style</h1>
+<h2>Ramifications of This Style</h2>
 
 <p>A cool side effect of this is that if you want to change how your IO gets evaluated it will all be in a handful of well-defined places.  This makes switching out implementation details easier.  Also, it makes converting to asynchronous IO more straightforward if the IO becomes a blocker to the performance of the system.</p>
 
@@ -275,7 +275,7 @@
 
 <p><em>NOTE: The code has been simplified from the production code to better emphasize the important points.</em></p>
 
-<h3>First Stab At a Stateful Test Macro</h3>
+<h2>First Stab At a Stateful Test Macro</h2>
 
 <p>Our first stab at this problem solves the basic initial version of the problem. Often this would be all you need to get the job done. This approach enables us to evaluate our test assertion from within a stateful scope, and we use the finally block of the try-catch to ensure that the rules are always set back to their original state when the test is done.</p>
 
@@ -408,7 +408,7 @@ time with code that looks like this.</p>
 
 <p>What I really want here is one macro not 5! I&rsquo;d like something I can easily extend as new forms of state come up.</p>
 
-<h3>Composing Functions For A More Extensible Approach</h3>
+<h2>Composing Functions For A More Extensible Approach</h2>
 
 <p>What if we could write test-motherload like this:</p>
 
@@ -583,7 +583,7 @@ expands into something very similar to the composed function solution above.</p>
 </span></code></pre></td></tr></table></div></figure>
 
 
-<h3>Refactoring Addendum</h3>
+<h2>Refactoring Addendum</h2>
 
 <p>I thought a little more about this and realized that even this macro is doing
 too much.  We can actually extract the code that wraps a 0-arity function f in
@@ -625,21 +625,27 @@ line of code that does the heavy lifting and a few more lines of asserts.</p>
 
 <p>This is a useful step because now we have another higher order function with which to build useful state-management tooling, and we&rsquo;ve eliminated more of the potentially confusing macro code.</p>
 
-<h3>Takeaways</h3>
+<h2>Takeaways</h2>
 
-<p>So why go to all this trouble?</p>
+<h3>So why go to all this trouble?</h3>
 
 <ul>
 <li>We&rsquo;ve written a macro that is extensible.</li>
 <li>We&rsquo;ve minimized actual lines of macro code. Yay!</li>
 <li>We get validation of the state-map keys for free, anytime we extend this with a new setup-and-teardown function.</li>
-<li><p>Our tests have a clean, uniform, minimal DSL for expressing pre-requisite mutable state.
-How did we do it?</p></li>
-<li><p>We took an essentially functional compositional approach.</p></li>
-<li>We wrapped it in a layer of syntactic sugar.
-Hope you enjoyed this little code walk through.</li>
+<li>Our tests have a clean, uniform, minimal DSL for expressing pre-requisite mutable state.</li>
 </ul>
 
+
+<h3>How did we do it?</h3>
+
+<ul>
+<li>We took an essentially functional compositional approach.</li>
+<li>We wrapped it in a layer of syntactic sugar.</li>
+</ul>
+
+
+<p>Hope you enjoyed this little code walk through.</p>
 
 <p>Comments or questions?</p>
 

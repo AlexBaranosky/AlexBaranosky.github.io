@@ -4,7 +4,7 @@
   <title><![CDATA[Category: macro | (elegant coding from a more civilized age)]]></title>
   <link href="http://AlexBaranosky.github.io/blog/categories/macro/atom.xml" rel="self"/>
   <link href="http://AlexBaranosky.github.io/"/>
-  <updated>2013-10-27T01:08:20-07:00</updated>
+  <updated>2013-10-27T11:39:34-07:00</updated>
   <id>http://AlexBaranosky.github.io/</id>
   <author>
     <name><![CDATA[Alex Baranosky]]></name>
@@ -24,7 +24,7 @@
 
 <p><em>NOTE: The code has been simplified from the production code to better emphasize the important points.</em></p>
 
-<h3>First Stab At a Stateful Test Macro</h3>
+<h2>First Stab At a Stateful Test Macro</h2>
 
 <p>Our first stab at this problem solves the basic initial version of the problem. Often this would be all you need to get the job done. This approach enables us to evaluate our test assertion from within a stateful scope, and we use the finally block of the try-catch to ensure that the rules are always set back to their original state when the test is done.</p>
 
@@ -119,7 +119,7 @@ time with code that looks like this.</p>
 
 <p>What I really want here is one macro not 5! I&rsquo;d like something I can easily extend as new forms of state come up.</p>
 
-<h3>Composing Functions For A More Extensible Approach</h3>
+<h2>Composing Functions For A More Extensible Approach</h2>
 
 <p>What if we could write test-motherload like this:</p>
 
@@ -257,7 +257,7 @@ expands into something very similar to the composed function solution above.</p>
 
 <p>```</p>
 
-<h3>Refactoring Addendum</h3>
+<h2>Refactoring Addendum</h2>
 
 <p>I thought a little more about this and realized that even this macro is doing
 too much.  We can actually extract the code that wraps a 0-arity function f in
@@ -292,21 +292,27 @@ line of code that does the heavy lifting and a few more lines of asserts.</p>
 
 <p>This is a useful step because now we have another higher order function with which to build useful state-management tooling, and we&rsquo;ve eliminated more of the potentially confusing macro code.</p>
 
-<h3>Takeaways</h3>
+<h2>Takeaways</h2>
 
-<p>So why go to all this trouble?</p>
+<h3>So why go to all this trouble?</h3>
 
 <ul>
 <li>We&rsquo;ve written a macro that is extensible.</li>
 <li>We&rsquo;ve minimized actual lines of macro code. Yay!</li>
 <li>We get validation of the state-map keys for free, anytime we extend this with a new setup-and-teardown function.</li>
-<li><p>Our tests have a clean, uniform, minimal DSL for expressing pre-requisite mutable state.
-How did we do it?</p></li>
-<li><p>We took an essentially functional compositional approach.</p></li>
-<li>We wrapped it in a layer of syntactic sugar.
-Hope you enjoyed this little code walk through.</li>
+<li>Our tests have a clean, uniform, minimal DSL for expressing pre-requisite mutable state.</li>
 </ul>
 
+
+<h3>How did we do it?</h3>
+
+<ul>
+<li>We took an essentially functional compositional approach.</li>
+<li>We wrapped it in a layer of syntactic sugar.</li>
+</ul>
+
+
+<p>Hope you enjoyed this little code walk through.</p>
 
 <p>Comments or questions?</p>
 
