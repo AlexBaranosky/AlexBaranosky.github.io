@@ -4,7 +4,7 @@
   <title><![CDATA[Category: monad | (elegant coding from a more civilized age)]]></title>
   <link href="http://AlexBaranosky.github.io/blog/categories/monad/atom.xml" rel="self"/>
   <link href="http://AlexBaranosky.github.io/"/>
-  <updated>2013-10-28T09:19:42-07:00</updated>
+  <updated>2013-10-28T09:35:37-07:00</updated>
   <id>http://AlexBaranosky.github.io/</id>
   <author>
     <name><![CDATA[Alex Baranosky]]></name>
@@ -18,8 +18,175 @@
     <link href="http://AlexBaranosky.github.io/blog/2011/10/05/scala-writer-monad/"/>
     <updated>2011-10-05T20:00:00-07:00</updated>
     <id>http://AlexBaranosky.github.io/blog/2011/10/05/scala-writer-monad</id>
-    <content type="html"><![CDATA[<div class='post'>
-<div><br /><span style="background-color: transparent; color: black; font-family: Arial; font-style: normal; font-variant: normal; font-weight: normal; text-decoration: none; vertical-align: baseline;">In  Scala we’re quite familiar with the built in Monads:&nbsp;</span></div><ul style="margin-left: 1.5em;"><li style="color: black;"><span style="background-color: transparent; color: black; font-family: Arial; font-style: normal; font-variant: normal; font-weight: normal; text-decoration: none; vertical-align: baseline;">Option</span></li><li style="color: black;"><span style="background-color: transparent; color: black; font-family: Arial; font-style: normal; font-variant: normal; font-weight: normal; text-decoration: none; vertical-align: baseline;">List</span></li><li style="color: black;"><span style="background-color: transparent; color: black; font-family: Arial; font-style: normal; font-variant: normal; font-weight: normal; text-decoration: none; vertical-align: baseline;">Either Left Projection</span></li><li style="color: black;"><span style="background-color: transparent; color: black; font-family: Arial; font-style: normal; font-variant: normal; font-weight: normal; text-decoration: none; vertical-align: baseline;">Either Right Projection</span></li></ul><div></div><div><span style="background-color: transparent; color: black; font-family: Arial; font-style: normal; font-variant: normal; font-weight: normal; text-decoration: none; vertical-align: baseline;">There are other  cool things you can do with the Monad pattern, though, one of which is termed the  Writer monad.</span><br /><span style="background-color: transparent; color: black; font-family: Arial; font-style: normal; font-variant: normal; font-weight: normal; text-decoration: none; vertical-align: baseline;"></span></div><div><br /><span style="background-color: transparent; color: black; font-family: Arial; font-style: italic; font-variant: normal; font-weight: normal; text-decoration: none; vertical-align: baseline;">“This  data type represents logging in a pure functional environment where you  maintain compositionality of your code (i.e. no side-effects) and also,  brevity of code.” <span style="font-style: normal;">&nbsp;</span></span></div><div></div><span style="background-color: transparent; color: black; font-family: Arial; font-style: italic; font-variant: normal; font-weight: normal; text-decoration: none; vertical-align: baseline;"><span style="font-style: normal;">-- <a href="http://blog.tmorris.net/the-writer-monad-using-scala-example/"> http://blog.tmorris.net/the-writer-monad-using-scala-example/</a></span></span><br /><br /><span style="font-size: large;"><span style="background-color: transparent; color: black; font-family: Arial; font-style: normal; font-variant: normal; font-weight: bold; text-decoration: none; vertical-align: baseline;">Writer Monad 0.1</span></span><br /><br /><script src="https://gist.github.com/1266102.js">  </script><br /><span style="font-size: large;"><span style="background-color: transparent; color: black; font-family: Arial; font-style: normal; font-variant: normal; font-weight: bold; text-decoration: none; vertical-align: baseline;">There's a Problem. It’s not generic. Let's make the value type generic.</span></span><br /><br /><script src="https://gist.github.com/1266120.js">  </script><br /><span style="font-size: large;"><span style="background-color: transparent; color: black; font-family: Arial; font-style: normal; font-variant: normal; font-weight: bold; text-decoration: none; vertical-align: baseline;">But it only works with Strings...</span></span><br /><br /><span style="font-size: large;"><span style="background-color: transparent; color: black; font-family: Arial; font-style: normal; font-variant: normal; font-weight: bold; text-decoration: none; vertical-align: baseline;">Introducing the Typeclass pattern</span></span><br /><br /><script src="https://gist.github.com/1266126.js">  </script><br /><span style="font-size: large;"><span style="background-color: transparent; color: black; font-family: Arial; font-style: normal; font-variant: normal; font-weight: bold; text-decoration: none; vertical-align: baseline;">Our new version still works</span></span><br /><script src="https://gist.github.com/1266130.js">  </script><br /><span style="font-size: large;"><span style="background-color: transparent; color: black; font-family: Arial; font-style: normal; font-variant: normal; font-weight: bold; text-decoration: none; vertical-align: baseline;">Why didn’t we just extend String with a trait?</span></span><br /><div dir="ltr"><div><div dir="ltr"><div><div dir="ltr"><div></div></div><span style="background-color: transparent; color: black; font-family: Arial; font-style: normal; font-variant: normal; font-weight: normal; text-decoration: none; vertical-align: baseline;">Notice  we could have implemented this using traits, and specified in the type  signature that type D of diary had to extend Monoid. &nbsp;</span></div><div></div><div><span style="background-color: transparent; color: black; font-family: Arial; font-style: normal; font-variant: normal; font-weight: normal; text-decoration: none; vertical-align: baseline;">Had we done that,  we would have needed to own the String class (which we don’t have access  to) so it could extend trait Monoid, or we would have had to extend it  manually at run-time.</span></div><div></div></div></div></div><br /><script src="https://gist.github.com/1266134.js">  </script><br /><span style="font-size: large;"><span style="background-color: transparent; color: black; font-family: Arial; font-style: normal; font-variant: normal; font-weight: bold; text-decoration: none; vertical-align: baseline;">Watch how using the typeclass pattern made it simple to use other classes as the ‘diary’ for our Writer</span></span><br /><br /><script src="https://gist.github.com/1266137.js">  </script><br /><span style="font-size: large;"><span style="background-color: transparent; color: black; font-family: Arial; font-style: normal; font-variant: normal; font-weight: bold; text-decoration: none; vertical-align: baseline;">What we learned</span></span><br /><div dir="ltr"><div style="font-weight: bold;"><div dir="ltr"><div style="color: black; font-size: 1.3em;"></div><div style="color: black; font-size: 1.3em;"><span style="background-color: transparent; color: black; font-family: Arial; font-style: normal; font-variant: normal; font-weight: normal; text-decoration: none; vertical-align: baseline;">We could get our Writer to work with a 3rd party class without needing to change either the Writer or the StringBuilder code.</span><br /><br /><span style="background-color: transparent; color: black; font-family: Arial; font-style: normal; font-variant: normal; font-weight: normal; text-decoration: none; vertical-align: baseline;">This Writer pattern can be used with anything that starts from nothing (zero) and can be built up piece by piece (diary). In essence Writer Monad is a sort of immutable, functional Builder pattern. </span><br /><br /></div><div style="color: black; font-size: 1.3em;"></div><div style="color: black; font-size: 1.3em;"><span style="background-color: transparent; color: black; font-family: Arial; font-style: normal; font-variant: normal; font-weight: normal; text-decoration: none; vertical-align: baseline;">We  saw that we're not limited to the monads Scala comes packaged with.&nbsp; We  can use our own monads to define computational contexts to suit our  code's unique needs.</span></div><div style="color: black; font-size: 1.3em;"><span style="background-color: transparent; color: black; font-family: Arial; font-style: normal; font-variant: normal; font-weight: normal; text-decoration: none; vertical-align: baseline;"><br clear="none" /></span></div></div><span style="font-size: large;"><span style="background-color: transparent; color: black; font-family: Arial; font-style: normal; font-variant: normal; font-weight: bold; text-decoration: none; vertical-align: baseline;">Writer Monad Materials </span></span></div><div style="font-weight: bold;"></div><div style="font-weight: bold;"><span style="background-color: transparent; color: black; font-family: Arial; font-style: italic; font-variant: normal; text-decoration: none; vertical-align: baseline;">Learn You a Haskell for Great Good:<span style="font-weight: normal;"> </span></span><span style="background-color: transparent; color: black; font-family: Arial; font-style: normal; font-variant: normal; font-weight: normal; text-decoration: none; vertical-align: baseline;"></span><br /><a href="http://learnyouahaskell.com/for-a-few-monads-more#writer" style="font-weight: normal;"><span style="background-color: transparent; color: #000099; font-family: Arial; font-style: normal; font-variant: normal; font-weight: normal; text-decoration: underline; vertical-align: baseline;">http://learnyouahaskell.com/for-a-few-monads-more#writer</span></a><span style="background-color: transparent; color: black; font-family: Arial; font-style: normal; font-variant: normal; font-weight: normal; text-decoration: none; vertical-align: baseline;"></span><br /><span style="background-color: transparent; color: black; font-family: Arial; font-style: normal; font-variant: normal; font-weight: normal; text-decoration: none; vertical-align: baseline;"></span><br /><span style="background-color: transparent; color: black; font-family: Arial; font-style: italic; font-variant: normal; font-weight: bold; text-decoration: none; vertical-align: baseline;">Scalaz Writer: </span><span style="background-color: transparent; color: black; font-family: Arial; font-style: normal; font-variant: normal; font-weight: bold; text-decoration: none; vertical-align: baseline;"></span><br /><a href="http://scalaz.github.com/scalaz/scalaz-2.9.0-1-6.0/doc.sxr/scalaz/Writer.scala.html"><span style="background-color: transparent; color: black; font-family: Arial; font-style: normal; font-variant: normal; font-weight: normal; text-decoration: none; vertical-align: baseline;">http://scalaz.github.com/scalaz/scalaz-2.9.0-1-6.0/doc.sxr/scalaz/Writer.scala.html</span></a></div></div></div>
+    <content type="html"><![CDATA[<p>In  Scala we’re quite familiar with the built in Monads:</p>
+
+<ul>
+<li>Option</li>
+<li>List</li>
+<li>Either Left Projection</li>
+<li>Either Right Projection</li>
+</ul>
+
+
+<p>There are other cool things you can do with the Monad pattern, though, one of
+which is termed the  Writer monad.</p>
+
+<p>“This  data type represents logging in a pure functional environment where you  maintain compositionality of your code (i.e. no side-effects) and also,  brevity of code.” &ndash; <a href="http://blog.tmorris.net/the-writer-monad-using-scala-example/"> http://blog.tmorris.net/the-writer-monad-using-scala-example/</a></p>
+
+<h2>Writer Monad 0.1</h2>
+
+<p>``` scala
+case class Writer(value: Int, diary: String) {
+  def flatMap(f: Int => Writer) = {</p>
+
+<pre><code>  f(value) match {
+      case Writer(result, d) =&gt; Writer(result, diary + d)
+  }
+</code></pre>
+
+<p>  }
+  def map(f: Int => Int) = Writer(f(value), diary)
+}
+// This enables us to say:
+new Writer(2, &ldquo;&rdquo;).flatMap { new Writer(3, &ldquo;three&rdquo;) }</p>
+
+<pre><code>             .flatMap { new Writer(4, "four") }
+</code></pre>
+
+<p>// => Writer(4, &ldquo;threefour&rdquo;)
+```</p>
+
+<h2>There&rsquo;s a Problem. It’s not generic. Let&rsquo;s make the value type generic.</h2>
+
+<p>``` scala
+case class Writer<a href="value:%20A,%20diary:%20String">A</a> = {
+   def flatMap<a href="f:%20A%20=>%20Writer[B]">B</a> = {</p>
+
+<pre><code>   f(value) match {
+       case Writer(result, d) =&gt; Writer(result, diary + d)
+   }
+</code></pre>
+
+<p>   }  <br/>
+   def map<a href="f:%20A%20=>%20B]">B</a> = Writer(f(value), diary)
+}
+```</p>
+
+<h2>But it only works with Strings: Introducing the Typeclass pattern</h2>
+
+<p>``` scala
+case class Writer<a href="value:%20A,%20diary:%20D">A, D</a>(implicit m: Monoid[D]) {
+  def flatMap<a href="f:%20A%20=>%20Writer2[B,%20D]">B</a> =  f(value) match {</p>
+
+<pre><code>  case Writer(result, d) =&gt; Writer(result, m.append(diary, d)
+</code></pre>
+
+<p>  }
+  def map<a href="f:%20A%20=>%20B">B</a> = Writer<a href="f(value">B, D</a>, diary)
+}
+trait Monoid[T] {
+   def zero: T
+   def append(a: T, b: T): T
+}
+object Monoid {
+   implicit val StringMonoid = new Monoid[St ring] {</p>
+
+<pre><code>   override def zero = ""
+   override def append(s1: String, s2: String) = s1 + s2
+</code></pre>
+
+<p>   }
+}
+```</p>
+
+<h2>Our new version still works</h2>
+
+<p>``` scala
+Writer(5, &ldquo;&rdquo;).flatMap { num => Writer(num + 3, &ldquo;added three&rdquo;)</p>
+
+<pre><code>         .flatMap { Writer(_ * 5, "times five")}
+</code></pre>
+
+<p>// => Writer(40, &ldquo;added threetimes 5&rdquo;)
+```</p>
+
+<h2>Why didn’t we just extend String with a trait?</h2>
+
+<p>Notice  we could have implemented this using traits, and specified in the type  signature that type D of diary had to extend Monoid. Had we done that,  we would have needed to own the String class (which we don’t have access  to) so it could extend trait Monoid, or we would have had to extend it  manually at run-time.</p>
+
+<p>``` scala
+object Monoid {
+ implicit val StringMonoid = new Monoid[String] {</p>
+
+<pre><code> override def zero = ""
+ override def append(s1: String, s2: String) = {
+         val  delimiter = if (s1 == zero || s2 == zero) "" 
+                          else ", "
+         s1 + delimiter + s2
+ }
+</code></pre>
+
+<p> }
+}</p>
+
+<p>Writer(5).flatMap { n => Writer(n + 3, “added three”)</p>
+
+<pre><code>       .flatMap { n =&gt; Writer(n * 5, "times five") }
+       .flatMap { n =&gt; Writer(n + 2, "plusTwo") }
+</code></pre>
+
+<p>// => Writer(42, &ldquo;added three, times 5, plus two&rdquo;)
+```</p>
+
+<h2>Watch how using the typeclass pattern made it simple to use other classes as the ‘diary’ for our Writer</h2>
+
+<p>``` scala
+object Monoid {</p>
+
+<pre><code>implicit val StringBuilderMonoid = new Monoid[StringBuilder] {
+    override def zero = new StringBuilder("")
+    override def append(sb1: StringBuilder, sb2: StringBuilder) = {
+        val  delimiter = if (sb1.toString == "" || 
+                             sb2.toString == "") "" 
+                         else ", "
+        sb1.append(delimiter).append(sb2)
+    }
+}
+</code></pre>
+
+<p>}</p>
+
+<p>Writer(22, new StringBuilder(&ldquo;&rdquo;)).flatMap { n =></p>
+
+<pre><code>Writer(n + 2, new StringBuilder("plus two")) 
+</code></pre>
+
+<p>}.flatMap { n =></p>
+
+<pre><code>Writer(n * 4, new StringBuilder("times four")) 
+</code></pre>
+
+<p>})</p>
+
+<p>// => Writer(96, StringBuilder(&ldquo;plus two, times four&rdquo;))
+```</p>
+
+<h2>What we learned</h2>
+
+<p>We could get our Writer to work with a 3rd party class without needing to change either the Writer or the StringBuilder code.</p>
+
+<p>This Writer pattern can be used with anything that starts from nothing (zero) and can be built up piece by piece (diary). In essence Writer Monad is a sort of immutable, functional Builder pattern.</p>
+
+<p>We  saw that we&rsquo;re not limited to the monads Scala comes packaged with. We  can
+use our own monads to define computational contexts to suit our  code&rsquo;s unique
+needs.</p>
+
+<h2>Writer Monad Materials</h2>
+
+<ul>
+<li><a href="http://learnyouahaskell.com/for-a-few-monads-more#writer">Learn You a Haskell for Great Good</a></li>
+<li><a href="http://scalaz.github.com/scalaz/scalaz-2.9.0-1-6.0/doc.sxr/scalaz/Writer.scala.html">Scalaz Writer</a></li>
+</ul>
 
 
 <h2>Comments</h2>

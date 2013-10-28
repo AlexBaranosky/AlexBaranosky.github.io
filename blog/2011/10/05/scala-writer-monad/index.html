@@ -9,7 +9,10 @@
   <meta name="author" content="Alex Baranosky">
 
   
-  <meta name="description" content="In Scala we’re quite familiar with the built in Monads:&nbsp;OptionListEither Left ProjectionEither Right ProjectionThere are other cool things you &hellip;">
+  <meta name="description" content="In Scala we’re quite familiar with the built in Monads: Option
+List
+Either Left Projection
+Either Right Projection There are other cool things you &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -88,9 +91,222 @@
   </header>
 
 
-<div class="entry-content"><div class='post'>
-<div><br /><span style="background-color: transparent; color: black; font-family: Arial; font-style: normal; font-variant: normal; font-weight: normal; text-decoration: none; vertical-align: baseline;">In  Scala we’re quite familiar with the built in Monads:&nbsp;</span></div><ul style="margin-left: 1.5em;"><li style="color: black;"><span style="background-color: transparent; color: black; font-family: Arial; font-style: normal; font-variant: normal; font-weight: normal; text-decoration: none; vertical-align: baseline;">Option</span></li><li style="color: black;"><span style="background-color: transparent; color: black; font-family: Arial; font-style: normal; font-variant: normal; font-weight: normal; text-decoration: none; vertical-align: baseline;">List</span></li><li style="color: black;"><span style="background-color: transparent; color: black; font-family: Arial; font-style: normal; font-variant: normal; font-weight: normal; text-decoration: none; vertical-align: baseline;">Either Left Projection</span></li><li style="color: black;"><span style="background-color: transparent; color: black; font-family: Arial; font-style: normal; font-variant: normal; font-weight: normal; text-decoration: none; vertical-align: baseline;">Either Right Projection</span></li></ul><div></div><div><span style="background-color: transparent; color: black; font-family: Arial; font-style: normal; font-variant: normal; font-weight: normal; text-decoration: none; vertical-align: baseline;">There are other  cool things you can do with the Monad pattern, though, one of which is termed the  Writer monad.</span><br /><span style="background-color: transparent; color: black; font-family: Arial; font-style: normal; font-variant: normal; font-weight: normal; text-decoration: none; vertical-align: baseline;"></span></div><div><br /><span style="background-color: transparent; color: black; font-family: Arial; font-style: italic; font-variant: normal; font-weight: normal; text-decoration: none; vertical-align: baseline;">“This  data type represents logging in a pure functional environment where you  maintain compositionality of your code (i.e. no side-effects) and also,  brevity of code.” <span style="font-style: normal;">&nbsp;</span></span></div><div></div><span style="background-color: transparent; color: black; font-family: Arial; font-style: italic; font-variant: normal; font-weight: normal; text-decoration: none; vertical-align: baseline;"><span style="font-style: normal;">&#8211; <a href="http://blog.tmorris.net/the-writer-monad-using-scala-example/"> http://blog.tmorris.net/the-writer-monad-using-scala-example/</a></span></span><br /><br /><span style="font-size: large;"><span style="background-color: transparent; color: black; font-family: Arial; font-style: normal; font-variant: normal; font-weight: bold; text-decoration: none; vertical-align: baseline;">Writer Monad 0.1</span></span><br /><br /><script src="https://gist.github.com/1266102.js">  </script><br /><span style="font-size: large;"><span style="background-color: transparent; color: black; font-family: Arial; font-style: normal; font-variant: normal; font-weight: bold; text-decoration: none; vertical-align: baseline;">There&#8217;s a Problem. It’s not generic. Let&#8217;s make the value type generic.</span></span><br /><br /><script src="https://gist.github.com/1266120.js">  </script><br /><span style="font-size: large;"><span style="background-color: transparent; color: black; font-family: Arial; font-style: normal; font-variant: normal; font-weight: bold; text-decoration: none; vertical-align: baseline;">But it only works with Strings&#8230;</span></span><br /><br /><span style="font-size: large;"><span style="background-color: transparent; color: black; font-family: Arial; font-style: normal; font-variant: normal; font-weight: bold; text-decoration: none; vertical-align: baseline;">Introducing the Typeclass pattern</span></span><br /><br /><script src="https://gist.github.com/1266126.js">  </script><br /><span style="font-size: large;"><span style="background-color: transparent; color: black; font-family: Arial; font-style: normal; font-variant: normal; font-weight: bold; text-decoration: none; vertical-align: baseline;">Our new version still works</span></span><br /><script src="https://gist.github.com/1266130.js">  </script><br /><span style="font-size: large;"><span style="background-color: transparent; color: black; font-family: Arial; font-style: normal; font-variant: normal; font-weight: bold; text-decoration: none; vertical-align: baseline;">Why didn’t we just extend String with a trait?</span></span><br /><div dir="ltr"><div><div dir="ltr"><div><div dir="ltr"><div></div></div><span style="background-color: transparent; color: black; font-family: Arial; font-style: normal; font-variant: normal; font-weight: normal; text-decoration: none; vertical-align: baseline;">Notice  we could have implemented this using traits, and specified in the type  signature that type D of diary had to extend Monoid. &nbsp;</span></div><div></div><div><span style="background-color: transparent; color: black; font-family: Arial; font-style: normal; font-variant: normal; font-weight: normal; text-decoration: none; vertical-align: baseline;">Had we done that,  we would have needed to own the String class (which we don’t have access  to) so it could extend trait Monoid, or we would have had to extend it  manually at run-time.</span></div><div></div></div></div></div><br /><script src="https://gist.github.com/1266134.js">  </script><br /><span style="font-size: large;"><span style="background-color: transparent; color: black; font-family: Arial; font-style: normal; font-variant: normal; font-weight: bold; text-decoration: none; vertical-align: baseline;">Watch how using the typeclass pattern made it simple to use other classes as the ‘diary’ for our Writer</span></span><br /><br /><script src="https://gist.github.com/1266137.js">  </script><br /><span style="font-size: large;"><span style="background-color: transparent; color: black; font-family: Arial; font-style: normal; font-variant: normal; font-weight: bold; text-decoration: none; vertical-align: baseline;">What we learned</span></span><br /><div dir="ltr"><div style="font-weight: bold;"><div dir="ltr"><div style="color: black; font-size: 1.3em;"></div><div style="color: black; font-size: 1.3em;"><span style="background-color: transparent; color: black; font-family: Arial; font-style: normal; font-variant: normal; font-weight: normal; text-decoration: none; vertical-align: baseline;">We could get our Writer to work with a 3rd party class without needing to change either the Writer or the StringBuilder code.</span><br /><br /><span style="background-color: transparent; color: black; font-family: Arial; font-style: normal; font-variant: normal; font-weight: normal; text-decoration: none; vertical-align: baseline;">This Writer pattern can be used with anything that starts from nothing (zero) and can be built up piece by piece (diary). In essence Writer Monad is a sort of immutable, functional Builder pattern. </span><br /><br /></div><div style="color: black; font-size: 1.3em;"></div><div style="color: black; font-size: 1.3em;"><span style="background-color: transparent; color: black; font-family: Arial; font-style: normal; font-variant: normal; font-weight: normal; text-decoration: none; vertical-align: baseline;">We  saw that we&#8217;re not limited to the monads Scala comes packaged with.&nbsp; We  can use our own monads to define computational contexts to suit our  code&#8217;s unique needs.</span></div><div style="color: black; font-size: 1.3em;"><span style="background-color: transparent; color: black; font-family: Arial; font-style: normal; font-variant: normal; font-weight: normal; text-decoration: none; vertical-align: baseline;"><br clear="none" /></span></div></div><span style="font-size: large;"><span style="background-color: transparent; color: black; font-family: Arial; font-style: normal; font-variant: normal; font-weight: bold; text-decoration: none; vertical-align: baseline;">Writer Monad Materials </span></span></div><div style="font-weight: bold;"></div><div style="font-weight: bold;"><span style="background-color: transparent; color: black; font-family: Arial; font-style: italic; font-variant: normal; text-decoration: none; vertical-align: baseline;">Learn You a Haskell for Great Good:<span style="font-weight: normal;"> </span></span><span style="background-color: transparent; color: black; font-family: Arial; font-style: normal; font-variant: normal; font-weight: normal; text-decoration: none; vertical-align: baseline;"></span><br /><a href="http://learnyouahaskell.com/for-a-few-monads-more#writer" style="font-weight: normal;"><span style="background-color: transparent; color: #000099; font-family: Arial; font-style: normal; font-variant: normal; font-weight: normal; text-decoration: underline; vertical-align: baseline;">http://learnyouahaskell.com/for-a-few-monads-more#writer</span></a><span style="background-color: transparent; color: black; font-family: Arial; font-style: normal; font-variant: normal; font-weight: normal; text-decoration: none; vertical-align: baseline;"></span><br /><span style="background-color: transparent; color: black; font-family: Arial; font-style: normal; font-variant: normal; font-weight: normal; text-decoration: none; vertical-align: baseline;"></span><br /><span style="background-color: transparent; color: black; font-family: Arial; font-style: italic; font-variant: normal; font-weight: bold; text-decoration: none; vertical-align: baseline;">Scalaz Writer: </span><span style="background-color: transparent; color: black; font-family: Arial; font-style: normal; font-variant: normal; font-weight: bold; text-decoration: none; vertical-align: baseline;"></span><br /><a href="http://scalaz.github.com/scalaz/scalaz-2.9.0-1-6.0/doc.sxr/scalaz/Writer.scala.html"><span style="background-color: transparent; color: black; font-family: Arial; font-style: normal; font-variant: normal; font-weight: normal; text-decoration: none; vertical-align: baseline;">http://scalaz.github.com/scalaz/scalaz-2.9.0-1-6.0/doc.sxr/scalaz/Writer.scala.html</span></a></div></div></div>
+<div class="entry-content"><p>In  Scala we’re quite familiar with the built in Monads:</p>
+
+<ul>
+<li>Option</li>
+<li>List</li>
+<li>Either Left Projection</li>
+<li>Either Right Projection</li>
+</ul>
+
+
+<p>There are other cool things you can do with the Monad pattern, though, one of
+which is termed the  Writer monad.</p>
+
+<p>“This  data type represents logging in a pure functional environment where you  maintain compositionality of your code (i.e. no side-effects) and also,  brevity of code.” &ndash; <a href="http://blog.tmorris.net/the-writer-monad-using-scala-example/"> http://blog.tmorris.net/the-writer-monad-using-scala-example/</a></p>
+
+<h2>Writer Monad 0.1</h2>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+</pre></td><td class='code'><pre><code class='scala'><span class='line'><span class="k">case</span> <span class="k">class</span> <span class="nc">Writer</span><span class="o">(</span><span class="n">value</span><span class="k">:</span> <span class="kt">Int</span><span class="o">,</span> <span class="n">diary</span><span class="k">:</span> <span class="kt">String</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>  <span class="k">def</span> <span class="n">flatMap</span><span class="o">(</span><span class="n">f</span><span class="k">:</span> <span class="kt">Int</span> <span class="o">=&gt;</span> <span class="nc">Writer</span><span class="o">)</span> <span class="k">=</span> <span class="o">{</span>
+</span><span class='line'>      <span class="n">f</span><span class="o">(</span><span class="n">value</span><span class="o">)</span> <span class="k">match</span> <span class="o">{</span>
+</span><span class='line'>          <span class="k">case</span> <span class="nc">Writer</span><span class="o">(</span><span class="n">result</span><span class="o">,</span> <span class="n">d</span><span class="o">)</span> <span class="k">=&gt;</span> <span class="nc">Writer</span><span class="o">(</span><span class="n">result</span><span class="o">,</span> <span class="n">diary</span> <span class="o">+</span> <span class="n">d</span><span class="o">)</span>
+</span><span class='line'>      <span class="o">}</span>
+</span><span class='line'>  <span class="o">}</span>
+</span><span class='line'>  <span class="k">def</span> <span class="n">map</span><span class="o">(</span><span class="n">f</span><span class="k">:</span> <span class="kt">Int</span> <span class="o">=&gt;</span> <span class="nc">Int</span><span class="o">)</span> <span class="k">=</span> <span class="nc">Writer</span><span class="o">(</span><span class="n">f</span><span class="o">(</span><span class="n">value</span><span class="o">),</span> <span class="n">diary</span><span class="o">)</span>
+</span><span class='line'><span class="o">}</span>
+</span><span class='line'><span class="c1">// This enables us to say:</span>
+</span><span class='line'><span class="k">new</span> <span class="nc">Writer</span><span class="o">(</span><span class="mi">2</span><span class="o">,</span> <span class="s">&quot;&quot;</span><span class="o">).</span><span class="n">flatMap</span> <span class="o">{</span> <span class="k">new</span> <span class="nc">Writer</span><span class="o">(</span><span class="mi">3</span><span class="o">,</span> <span class="s">&quot;three&quot;</span><span class="o">)</span> <span class="o">}</span>
+</span><span class='line'>                 <span class="o">.</span><span class="n">flatMap</span> <span class="o">{</span> <span class="k">new</span> <span class="nc">Writer</span><span class="o">(</span><span class="mi">4</span><span class="o">,</span> <span class="s">&quot;four&quot;</span><span class="o">)</span> <span class="o">}</span>
+</span><span class='line'><span class="c1">// =&gt; Writer(4, &quot;threefour&quot;)</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>There&rsquo;s a Problem. It’s not generic. Let&rsquo;s make the value type generic.</h2>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+</pre></td><td class='code'><pre><code class='scala'><span class='line'><span class="k">case</span> <span class="k">class</span> <span class="nc">Writer</span><span class="o">[</span><span class="kt">A</span><span class="o">](</span><span class="n">value</span><span class="k">:</span> <span class="kt">A</span><span class="o">,</span> <span class="n">diary</span><span class="k">:</span> <span class="kt">String</span><span class="o">)</span> <span class="k">=</span> <span class="o">{</span>
+</span><span class='line'>   <span class="k">def</span> <span class="n">flatMap</span><span class="o">[</span><span class="kt">B</span><span class="o">](</span><span class="n">f</span><span class="k">:</span> <span class="kt">A</span> <span class="o">=&gt;</span> <span class="nc">Writer</span><span class="o">[</span><span class="kt">B</span><span class="o">])</span> <span class="k">=</span> <span class="o">{</span>
+</span><span class='line'>       <span class="n">f</span><span class="o">(</span><span class="n">value</span><span class="o">)</span> <span class="k">match</span> <span class="o">{</span>
+</span><span class='line'>           <span class="k">case</span> <span class="nc">Writer</span><span class="o">(</span><span class="n">result</span><span class="o">,</span> <span class="n">d</span><span class="o">)</span> <span class="k">=&gt;</span> <span class="nc">Writer</span><span class="o">(</span><span class="n">result</span><span class="o">,</span> <span class="n">diary</span> <span class="o">+</span> <span class="n">d</span><span class="o">)</span>
+</span><span class='line'>       <span class="o">}</span>
+</span><span class='line'>   <span class="o">}</span>
+</span><span class='line'>   <span class="k">def</span> <span class="n">map</span><span class="o">[</span><span class="kt">B</span><span class="o">](</span><span class="n">f</span><span class="k">:</span> <span class="kt">A</span> <span class="o">=&gt;</span> <span class="n">B</span><span class="err">]</span><span class="o">)</span> <span class="k">=</span> <span class="nc">Writer</span><span class="o">(</span><span class="n">f</span><span class="o">(</span><span class="n">value</span><span class="o">),</span> <span class="n">diary</span><span class="o">)</span>
+</span><span class='line'><span class="o">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>But it only works with Strings: Introducing the Typeclass pattern</h2>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+</pre></td><td class='code'><pre><code class='scala'><span class='line'><span class="k">case</span> <span class="k">class</span> <span class="nc">Writer</span><span class="o">[</span><span class="kt">A</span>, <span class="kt">D</span><span class="o">](</span><span class="n">value</span><span class="k">:</span> <span class="kt">A</span><span class="o">,</span> <span class="n">diary</span><span class="k">:</span> <span class="kt">D</span><span class="o">)(</span><span class="k">implicit</span> <span class="n">m</span><span class="k">:</span> <span class="kt">Monoid</span><span class="o">[</span><span class="kt">D</span><span class="o">])</span> <span class="o">{</span>
+</span><span class='line'>  <span class="k">def</span> <span class="n">flatMap</span><span class="o">[</span><span class="kt">B</span><span class="o">](</span><span class="n">f</span><span class="k">:</span> <span class="kt">A</span> <span class="o">=&gt;</span> <span class="nc">Writer2</span><span class="o">[</span><span class="kt">B</span>, <span class="kt">D</span><span class="o">])</span> <span class="k">=</span>  <span class="n">f</span><span class="o">(</span><span class="n">value</span><span class="o">)</span> <span class="k">match</span> <span class="o">{</span>
+</span><span class='line'>      <span class="k">case</span> <span class="nc">Writer</span><span class="o">(</span><span class="n">result</span><span class="o">,</span> <span class="n">d</span><span class="o">)</span> <span class="k">=&gt;</span> <span class="nc">Writer</span><span class="o">(</span><span class="n">result</span><span class="o">,</span> <span class="n">m</span><span class="o">.</span><span class="n">append</span><span class="o">(</span><span class="n">diary</span><span class="o">,</span> <span class="n">d</span><span class="o">)</span>
+</span><span class='line'>  <span class="o">}</span>
+</span><span class='line'>  <span class="k">def</span> <span class="n">map</span><span class="o">[</span><span class="kt">B</span><span class="o">](</span><span class="n">f</span><span class="k">:</span> <span class="kt">A</span> <span class="o">=&gt;</span> <span class="n">B</span><span class="o">)</span> <span class="k">=</span> <span class="nc">Writer</span><span class="o">[</span><span class="kt">B</span>, <span class="kt">D</span><span class="o">](</span><span class="n">f</span><span class="o">(</span><span class="n">value</span><span class="o">),</span> <span class="n">diary</span><span class="o">)</span>
+</span><span class='line'><span class="o">}</span>
+</span><span class='line'><span class="k">trait</span> <span class="nc">Monoid</span><span class="o">[</span><span class="kt">T</span><span class="o">]</span> <span class="o">{</span>
+</span><span class='line'>   <span class="k">def</span> <span class="n">zero</span><span class="k">:</span> <span class="kt">T</span>
+</span><span class='line'>   <span class="k">def</span> <span class="n">append</span><span class="o">(</span><span class="n">a</span><span class="k">:</span> <span class="kt">T</span><span class="o">,</span> <span class="n">b</span><span class="k">:</span> <span class="kt">T</span><span class="o">)</span><span class="k">:</span> <span class="kt">T</span>
+</span><span class='line'><span class="o">}</span>
+</span><span class='line'><span class="k">object</span> <span class="nc">Monoid</span> <span class="o">{</span>
+</span><span class='line'>   <span class="k">implicit</span> <span class="k">val</span> <span class="nc">StringMonoid</span> <span class="k">=</span> <span class="k">new</span> <span class="nc">Monoid</span><span class="o">[</span><span class="kt">St</span> <span class="kt">ring</span><span class="o">]</span> <span class="o">{</span>
+</span><span class='line'>       <span class="k">override</span> <span class="k">def</span> <span class="n">zero</span> <span class="k">=</span> <span class="s">&quot;&quot;</span>
+</span><span class='line'>       <span class="k">override</span> <span class="k">def</span> <span class="n">append</span><span class="o">(</span><span class="n">s1</span><span class="k">:</span> <span class="kt">String</span><span class="o">,</span> <span class="n">s2</span><span class="k">:</span> <span class="kt">String</span><span class="o">)</span> <span class="k">=</span> <span class="n">s1</span> <span class="o">+</span> <span class="n">s2</span>
+</span><span class='line'>   <span class="o">}</span>
+</span><span class='line'><span class="o">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>Our new version still works</h2>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class='scala'><span class='line'><span class="nc">Writer</span><span class="o">(</span><span class="mi">5</span><span class="o">,</span> <span class="s">&quot;&quot;</span><span class="o">).</span><span class="n">flatMap</span> <span class="o">{</span> <span class="n">num</span> <span class="k">=&gt;</span> <span class="nc">Writer</span><span class="o">(</span><span class="n">num</span> <span class="o">+</span> <span class="mi">3</span><span class="o">,</span> <span class="s">&quot;added three&quot;</span><span class="o">)</span>
+</span><span class='line'>             <span class="o">.</span><span class="n">flatMap</span> <span class="o">{</span> <span class="nc">Writer</span><span class="o">(</span><span class="k">_</span> <span class="o">*</span> <span class="mi">5</span><span class="o">,</span> <span class="s">&quot;times five&quot;</span><span class="o">)}</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1">// =&gt; Writer(40, &quot;added threetimes 5&quot;) </span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>Why didn’t we just extend String with a trait?</h2>
+
+<p>Notice  we could have implemented this using traits, and specified in the type  signature that type D of diary had to extend Monoid. Had we done that,  we would have needed to own the String class (which we don’t have access  to) so it could extend trait Monoid, or we would have had to extend it  manually at run-time.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+</pre></td><td class='code'><pre><code class='scala'><span class='line'><span class="k">object</span> <span class="nc">Monoid</span> <span class="o">{</span>
+</span><span class='line'> <span class="k">implicit</span> <span class="k">val</span> <span class="nc">StringMonoid</span> <span class="k">=</span> <span class="k">new</span> <span class="nc">Monoid</span><span class="o">[</span><span class="kt">String</span><span class="o">]</span> <span class="o">{</span>
+</span><span class='line'>     <span class="k">override</span> <span class="k">def</span> <span class="n">zero</span> <span class="k">=</span> <span class="s">&quot;&quot;</span>
+</span><span class='line'>     <span class="k">override</span> <span class="k">def</span> <span class="n">append</span><span class="o">(</span><span class="n">s1</span><span class="k">:</span> <span class="kt">String</span><span class="o">,</span> <span class="n">s2</span><span class="k">:</span> <span class="kt">String</span><span class="o">)</span> <span class="k">=</span> <span class="o">{</span>
+</span><span class='line'>             <span class="k">val</span>  <span class="n">delimiter</span> <span class="k">=</span> <span class="k">if</span> <span class="o">(</span><span class="n">s1</span> <span class="o">==</span> <span class="n">zero</span> <span class="o">||</span> <span class="n">s2</span> <span class="o">==</span> <span class="n">zero</span><span class="o">)</span> <span class="s">&quot;&quot;</span>
+</span><span class='line'>                              <span class="k">else</span> <span class="s">&quot;, &quot;</span>
+</span><span class='line'>             <span class="n">s1</span> <span class="o">+</span> <span class="n">delimiter</span> <span class="o">+</span> <span class="n">s2</span>
+</span><span class='line'>     <span class="o">}</span>
+</span><span class='line'> <span class="o">}</span>
+</span><span class='line'><span class="o">}</span>
+</span><span class='line'>
+</span><span class='line'><span class="nc">Writer</span><span class="o">(</span><span class="mi">5</span><span class="o">).</span><span class="n">flatMap</span> <span class="o">{</span> <span class="n">n</span> <span class="k">=&gt;</span> <span class="nc">Writer</span><span class="o">(</span><span class="n">n</span> <span class="o">+</span> <span class="mi">3</span><span class="o">,</span> <span class="err">“</span><span class="n">added</span> <span class="n">three</span><span class="err">”</span><span class="o">)</span>
+</span><span class='line'>           <span class="o">.</span><span class="n">flatMap</span> <span class="o">{</span> <span class="n">n</span> <span class="k">=&gt;</span> <span class="nc">Writer</span><span class="o">(</span><span class="n">n</span> <span class="o">*</span> <span class="mi">5</span><span class="o">,</span> <span class="s">&quot;times five&quot;</span><span class="o">)</span> <span class="o">}</span>
+</span><span class='line'>           <span class="o">.</span><span class="n">flatMap</span> <span class="o">{</span> <span class="n">n</span> <span class="k">=&gt;</span> <span class="nc">Writer</span><span class="o">(</span><span class="n">n</span> <span class="o">+</span> <span class="mi">2</span><span class="o">,</span> <span class="s">&quot;plusTwo&quot;</span><span class="o">)</span> <span class="o">}</span>
+</span><span class='line'><span class="c1">// =&gt; Writer(42, &quot;added three, times 5, plus two&quot;) </span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>Watch how using the typeclass pattern made it simple to use other classes as the ‘diary’ for our Writer</h2>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+</pre></td><td class='code'><pre><code class='scala'><span class='line'><span class="k">object</span> <span class="nc">Monoid</span> <span class="o">{</span>
+</span><span class='line'>    <span class="k">implicit</span> <span class="k">val</span> <span class="nc">StringBuilderMonoid</span> <span class="k">=</span> <span class="k">new</span> <span class="nc">Monoid</span><span class="o">[</span><span class="kt">StringBuilder</span><span class="o">]</span> <span class="o">{</span>
+</span><span class='line'>        <span class="k">override</span> <span class="k">def</span> <span class="n">zero</span> <span class="k">=</span> <span class="k">new</span> <span class="nc">StringBuilder</span><span class="o">(</span><span class="s">&quot;&quot;</span><span class="o">)</span>
+</span><span class='line'>        <span class="k">override</span> <span class="k">def</span> <span class="n">append</span><span class="o">(</span><span class="n">sb1</span><span class="k">:</span> <span class="kt">StringBuilder</span><span class="o">,</span> <span class="n">sb2</span><span class="k">:</span> <span class="kt">StringBuilder</span><span class="o">)</span> <span class="k">=</span> <span class="o">{</span>
+</span><span class='line'>            <span class="k">val</span>  <span class="n">delimiter</span> <span class="k">=</span> <span class="k">if</span> <span class="o">(</span><span class="n">sb1</span><span class="o">.</span><span class="n">toString</span> <span class="o">==</span> <span class="s">&quot;&quot;</span> <span class="o">||</span>
+</span><span class='line'>                                 <span class="n">sb2</span><span class="o">.</span><span class="n">toString</span> <span class="o">==</span> <span class="s">&quot;&quot;</span><span class="o">)</span> <span class="s">&quot;&quot;</span>
+</span><span class='line'>                             <span class="k">else</span> <span class="s">&quot;, &quot;</span>
+</span><span class='line'>            <span class="n">sb1</span><span class="o">.</span><span class="n">append</span><span class="o">(</span><span class="n">delimiter</span><span class="o">).</span><span class="n">append</span><span class="o">(</span><span class="n">sb2</span><span class="o">)</span>
+</span><span class='line'>        <span class="o">}</span>
+</span><span class='line'>    <span class="o">}</span>
+</span><span class='line'><span class="o">}</span>
+</span><span class='line'>
+</span><span class='line'><span class="nc">Writer</span><span class="o">(</span><span class="mi">22</span><span class="o">,</span> <span class="k">new</span> <span class="nc">StringBuilder</span><span class="o">(</span><span class="s">&quot;&quot;</span><span class="o">)).</span><span class="n">flatMap</span> <span class="o">{</span> <span class="n">n</span> <span class="k">=&gt;</span>
+</span><span class='line'>    <span class="nc">Writer</span><span class="o">(</span><span class="n">n</span> <span class="o">+</span> <span class="mi">2</span><span class="o">,</span> <span class="k">new</span> <span class="nc">StringBuilder</span><span class="o">(</span><span class="s">&quot;plus two&quot;</span><span class="o">))</span>
+</span><span class='line'><span class="o">}.</span><span class="n">flatMap</span> <span class="o">{</span> <span class="n">n</span> <span class="k">=&gt;</span>
+</span><span class='line'>    <span class="nc">Writer</span><span class="o">(</span><span class="n">n</span> <span class="o">*</span> <span class="mi">4</span><span class="o">,</span> <span class="k">new</span> <span class="nc">StringBuilder</span><span class="o">(</span><span class="s">&quot;times four&quot;</span><span class="o">))</span>
+</span><span class='line'><span class="o">})</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1">// =&gt; Writer(96, StringBuilder(&quot;plus two, times four&quot;)) </span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>What we learned</h2>
+
+<p>We could get our Writer to work with a 3rd party class without needing to change either the Writer or the StringBuilder code.</p>
+
+<p>This Writer pattern can be used with anything that starts from nothing (zero) and can be built up piece by piece (diary). In essence Writer Monad is a sort of immutable, functional Builder pattern.</p>
+
+<p>We  saw that we&rsquo;re not limited to the monads Scala comes packaged with. We  can
+use our own monads to define computational contexts to suit our  code&rsquo;s unique
+needs.</p>
+
+<h2>Writer Monad Materials</h2>
+
+<ul>
+<li><a href="http://learnyouahaskell.com/for-a-few-monads-more#writer">Learn You a Haskell for Great Good</a></li>
+<li><a href="http://scalaz.github.com/scalaz/scalaz-2.9.0-1-6.0/doc.sxr/scalaz/Writer.scala.html">Scalaz Writer</a></li>
+</ul>
+
+
 <h2>Comments</h2>
+
+
 <div class='comments'>
 <div class='comment'>
 <div class='author'>Dombou</div>
@@ -103,6 +319,7 @@ None of this code works. There&#39;s also quite a few syntax errors.</div>
 I learn something new everyday!</div>
 </div>
 </div>
+
 </div>
 
 
