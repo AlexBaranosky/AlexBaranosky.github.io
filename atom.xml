@@ -4,7 +4,7 @@
   <title><![CDATA[(elegant coding from a more civilized age)]]></title>
   <link href="http://AlexBaranosky.github.io/atom.xml" rel="self"/>
   <link href="http://AlexBaranosky.github.io/"/>
-  <updated>2013-10-28T02:13:29-07:00</updated>
+  <updated>2013-10-28T02:22:53-07:00</updated>
   <id>http://AlexBaranosky.github.io/</id>
   <author>
     <name><![CDATA[Alex Baranosky]]></name>
@@ -632,8 +632,313 @@ Hey, saw your write ups. It is quite interesting. Please share your profile at h
     <link href="http://AlexBaranosky.github.io/blog/2012/02/19/tdd-in-midje-in-nutshell/"/>
     <updated>2012-02-19T17:41:00-08:00</updated>
     <id>http://AlexBaranosky.github.io/blog/2012/02/19/tdd-in-midje-in-nutshell</id>
-    <content type="html"><![CDATA[<div class='post'>
-<a href="https://github.com/marick/Midje">Midje</a> is a Clojure testing library supporting a top-down mock function style of development, but also equally well supports a bottom-up style.<br /><br />This is an introductory article, and depending on the response, there will be more articles about some of the intermediate and advanced features.<br /><br /><h3>Elegant Examples</h3><br />Midje starts with a simple premise: that tests should be elegant and readable.<br /><br />When was the last time you saw code samples like this in somebody&#8217;s blog, gist, or book?<br /><br />EXAMPLE:<br /><i>As you can see the foo function always returns&nbsp;:a-ham-sandwich</i><br /><br />(foo :bar :baz)<br />;=&gt; :a-ham-sandwich<br /><br />As developers, I think we write examples like this, because it reads well to us. We&#8217;re used to this sort of pseudo-code example style, and so we can all tell at a glance what&#8217;s happening.<br /><br />This is where Midje enters. The below is executable Clojure Midje code:<br /><script type="syntaxhighlighter" class="brush: clj; gutter: false;">&lt;![CDATA[ (fact "the foo function always returns :a-ham-sandwich"   (foo :bar :baz) => :a-ham-sandwich) ]]&gt;</script>You can take that code, and run it, now, and if you&#8217;ve defined foo, then you can run `lein midje` or use midje-mode in Emacs to confirm that foo does in fact always return :a-ham-sandwich. (Forget for now that this particular fact doesn&#8217;t very well cover every possible input. Using a generated test input style of testing could be very useful here, but that is for another blog.)<br /><br /><h3>Describing Code That Doesn&#8217;t Exist - Yet</h3><br />Let&#8217;s try describing some code that doesn&#8217;t yet exist with these kinds of examples.  I think if we jot down some example cases, it will help us think more clearly about what we&#8217;re trying to get our code doing.<br /><script type="syntaxhighlighter" class="brush: clj; gutter: false;">&lt;![CDATA[ (fact "doubles odd numbers"   (my-func 3) => 6)  (fact "triples even numbers"   (my-func 4) => 12) ]]&gt;</script>We can run these examples now. First thing you&#8217;ll notice is that we&#8217;re getting errors; that&#8217;s of course because we have not yet written any code. Let&#8217;s add the my-func function.<br /><pre class="brush: clj; gutter: false;">(defn my-func [n] )<br /></pre>Let&#8217;s be cautious and just try to get one of these facts working first.<br /><pre class="brush: clj; gutter: false;">(defn my-func [n]<br />  (* 2 n))<br /></pre>This seems to work&#8230; but for only the first fact. (There&#8217;s a lot to be said for how effectively TDD can help you to stay focused on the task at hand.)<br /><br />So let&#8217;s get my-func to pass the second fact as well.<br /><pre class="brush: clj; gutter: false;">(defn my-func [n]<br />  (if (odd? n)<br />    (* 2 n)<br />    (* 3 n))<br /></pre>Running those examples again with lein midje or midje mode, we see that they do indeed pass.<br /><br />But there&#8217;s one more thing. There is a little bit of duplication left in my-func. Let&#8217;s take a second, and refactor this a little.<br /><pre class="brush: clj; gutter: false;">(defn my-func [n]<br />  (let [multiplier (if (odd? n) 2 3)]<br />    (* multiplier n))<br /></pre>Now that we&#8217;ve revealed a new concept of a multiplier in our code, it looks like we are done.  Our code works as advertised.<br /><br /><h3>TDD Recap</h3><br />You just learned:<br /><ul><li>how to use Midje facts as a form of executable examples</li><li>how to do TDD</li></ul>Nice.<br /><br />I was sneaky just then. Without letting you know what I was doing, I&#8217;ve walked you through the 4 steps of TDD. Decide what you are testing, write a failing test, make that test pass, refactor the code to have a good design.<br /><br /><h4>TDD Steps:</h4><ol><li>We chose a new piece of functionality we wanted the code to have.</li><li>We wrote a failing test.  We ran it.  We saw it fail. In Midje, we like to think of this step as taking some time to describe the facts of the future version of the code.</li><li>We wrote as little code as possible to make the test pass. In Midje, we think of this step as bringing the code up to date with the new facts.</li><li>We took some time to reorganize the code - giving it better structure, removing duplication, adjusting the naming, etc.</li></ol>Repeat.<br /><br />That&#8217;s TDD in Midje in a nutshell.<br /><br />What did you think? Interested in hearing some more intermediate or advanced TDD and Midje concepts and exercises?<br /><br /><h3>Technicalities</h3><script type="syntaxhighlighter" class="brush: clj; gutter: false;">&lt;![CDATA[  ;; project.clj setup  (defproject my-project "0.1.0"   ;; ...   :dev-dependencies [[lein-midje "1.0.8"]                      [midje "1.4.0-SNAPSHOT"]])   ;; example with ns macro  (ns my-ns.t-core   (:use my-ns.core         midje.sweet))  (fact   (foo :bar :baz) => :a-ham-sandwich) ]]&gt;</script></div>
+    <content type="html"><![CDATA[<p><a href="https://github.com/marick/Midje">Midje</a> is a Clojure testing library supporting a top-down mock function style of development, but also equally well supports a bottom-up style.</p>
+
+<p>This is an introductory article, and depending on the response, there will be more articles about some of the intermediate and advanced features.</p>
+
+<h2>Elegant Examples</h2>
+
+<p>Midje starts with a simple premise: that tests should be elegant and readable.</p>
+
+<p>When was the last time you saw code samples like this in somebody&rsquo;s blog, gist, or book?</p>
+
+<p>EXAMPLE:
+<em>As you can see the foo function always returns: a-ham-sandwich</em></p>
+
+<p>(foo :bar :baz)
+;; => :a-ham-sandwich</p>
+
+<p>As developers, I think we write examples like this, because it reads well to us. We&rsquo;re used to this sort of pseudo-code example style, and so we can all tell at a glance what&rsquo;s happening.</p>
+
+<p>This is where Midje enters. The below is executable Clojure Midje code:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='clojure'><span class='line'><span class="p">(</span><span class="nf">fact</span> <span class="s">&quot;the foo function always returns :a-ham-sandwich&quot;</span>
+</span><span class='line'>  <span class="p">(</span><span class="nf">foo</span> <span class="ss">:bar</span> <span class="ss">:baz</span><span class="p">)</span> <span class="nv">=&gt;</span> <span class="ss">:a-ham-sandwich</span><span class="p">)</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>You can take that code, and run it, now, and if you&rsquo;ve defined foo, then you can run <code>lein midje</code> or use midje-mode in Emacs to confirm that foo does in fact always return <code>:a-ham-sandwich</code>. (Forget for now that this particular fact doesn&rsquo;t very well cover every possible input. Using a generated test input style of testing could be very useful here, but that is for another blog.)</p>
+
+<h2>Describing Code That Doesn&rsquo;t Exist &ndash; Yet</h2>
+
+<p>Let&rsquo;s try describing some code that doesn&rsquo;t yet exist with these kinds of examples.  I think if we jot down some example cases, it will help us think more clearly about what we&rsquo;re trying to get our code doing.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class='clojure'><span class='line'><span class="p">(</span><span class="nf">fact</span> <span class="s">&quot;doubles odd numbers&quot;</span>
+</span><span class='line'>  <span class="p">(</span><span class="nf">my-func</span> <span class="mi">3</span><span class="p">)</span> <span class="nv">=&gt;</span> <span class="mi">6</span><span class="p">)</span>
+</span><span class='line'>
+</span><span class='line'><span class="p">(</span><span class="nf">fact</span> <span class="s">&quot;triples even numbers&quot;</span>
+</span><span class='line'>  <span class="p">(</span><span class="nf">my-func</span> <span class="mi">4</span><span class="p">)</span> <span class="nv">=&gt;</span> <span class="mi">12</span><span class="p">)</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>We can run these examples now. First thing you&rsquo;ll notice is that we&rsquo;re getting errors; that&rsquo;s of course because we have not yet written any code. Let&rsquo;s add the my-func function.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='clojure'><span class='line'><span class="p">(</span><span class="kd">defn </span><span class="nv">my-func</span> <span class="p">[</span><span class="nv">n</span><span class="p">]</span> <span class="p">)</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Let&rsquo;s be cautious and just try to get one of these facts working first.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='clojure'><span class='line'><span class="p">(</span><span class="kd">defn </span><span class="nv">my-func</span> <span class="p">[</span><span class="nv">n</span><span class="p">]</span>
+</span><span class='line'>  <span class="p">(</span><span class="nb">* </span><span class="mi">2</span> <span class="nv">n</span><span class="p">))</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>This seems to work&hellip; but for only the first fact. (There&rsquo;s a lot to be said for how effectively TDD can help you to stay focused on the task at hand.)</p>
+
+<p>So let&rsquo;s get my-func to pass the second fact as well.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class='clojure'><span class='line'><span class="p">(</span><span class="kd">defn </span><span class="nv">my-func</span> <span class="p">[</span><span class="nv">n</span><span class="p">]</span>
+</span><span class='line'>  <span class="p">(</span><span class="k">if </span><span class="p">(</span><span class="nf">odd?</span> <span class="nv">n</span><span class="p">)</span>
+</span><span class='line'>    <span class="p">(</span><span class="nb">* </span><span class="mi">2</span> <span class="nv">n</span><span class="p">)</span>
+</span><span class='line'>    <span class="p">(</span><span class="nb">* </span><span class="mi">3</span> <span class="nv">n</span><span class="p">))</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Running those examples again with lein midje or midje mode, we see that they do indeed pass.</p>
+
+<p>But there&rsquo;s one more thing. There is a little bit of duplication left in my-func. Let&rsquo;s take a second, and refactor this a little.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class='clojure'><span class='line'><span class="p">(</span><span class="kd">defn </span><span class="nv">my-func</span> <span class="p">[</span><span class="nv">n</span><span class="p">]</span>
+</span><span class='line'>  <span class="p">(</span><span class="k">let </span><span class="p">[</span><span class="nv">multiplier</span> <span class="p">(</span><span class="k">if </span><span class="p">(</span><span class="nf">odd?</span> <span class="nv">n</span><span class="p">)</span> <span class="mi">2</span> <span class="mi">3</span><span class="p">)]</span>
+</span><span class='line'>    <span class="p">(</span><span class="nb">* </span><span class="nv">multiplier</span> <span class="nv">n</span><span class="p">))</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Now that we&rsquo;ve revealed a new concept of a multiplier in our code, it looks like we are done.  Our code works as advertised.</p>
+
+<h2>TDD Recap</h2>
+
+<p>You just learned:</p>
+
+<ul>
+<li>how to use Midje facts as a form of executable examples</li>
+<li>how to do TDDNice.</li>
+</ul>
+
+
+<p>I was sneaky just then. Without letting you know what I was doing, I&rsquo;ve walked you through the 4 steps of TDD. Decide what you are testing, write a failing test, make that test pass, refactor the code to have a good design.</p>
+
+<h2>TDD Steps:</h2>
+
+<ol>
+<li>We chose a new piece of functionality we wanted the code to have.</li>
+<li>We wrote a failing test.  We ran it.  We saw it fail. In Midje, we like to think of this step as taking some time to describe the facts of the future version of the code.</li>
+<li>We wrote as little code as possible to make the test pass. In Midje, we think of this step as bringing the code up to date with the new facts.</li>
+<li>We took some time to reorganize the code &ndash; giving it better structure, removing duplication, adjusting the naming, etc.Repeat.</li>
+</ol>
+
+
+<p>That&rsquo;s TDD in Midje in a nutshell.</p>
+
+<p>What did you think? Interested in hearing some more intermediate or advanced TDD and Midje concepts and exercises?</p>
+
+<h2>Technicalities</h2>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+</pre></td><td class='code'><pre><code class='clojure'><span class='line'><span class="c1">;; project.clj  </span>
+</span><span class='line'><span class="p">(</span><span class="kd">defproject </span><span class="nv">my-project</span> <span class="s">&quot;0.1.0&quot;</span>
+</span><span class='line'>  <span class="ss">:dev-dependencies</span> <span class="p">[[</span><span class="nv">lein-midje</span> <span class="s">&quot;1.0.8&quot;</span><span class="p">]</span>
+</span><span class='line'>                     <span class="p">[</span><span class="nv">midje</span> <span class="s">&quot;1.4.0-SNAPSHOT&quot;</span><span class="p">]])</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1">;; example with ns macro  </span>
+</span><span class='line'><span class="p">(</span><span class="kd">ns </span><span class="nv">my-ns.t-core</span>
+</span><span class='line'>  <span class="p">(</span><span class="ss">:use</span> <span class="nv">my-ns.core</span>
+</span><span class='line'>        <span class="nv">midje.sweet</span><span class="p">))</span>
+</span><span class='line'>
+</span><span class='line'><span class="p">(</span><span class="nf">fact</span>
+</span><span class='line'>  <span class="p">(</span><span class="nf">foo</span> <span class="ss">:bar</span> <span class="ss">:baz</span><span class="p">)</span> <span class="nv">=&gt;</span> <span class="ss">:a-ham-sandwich</span><span class="p">)</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+
+
+<h2>Comments</h2>
+
+
+<div class='comments'>
+<div class='comment'>
+<div class='author'>id</div>
+<div class='content'>
+Look closely at this screenshot (note: with noscript allowing all scripts except for the notorious google tracking bs) : http://bit.ly/IyQf46<br /><br />&quot;As developers, I think we write examples like this (&#8230;)&quot;<br /><br />As developers, *we* know that to mark up *code* you don&#39;t use a *script* tag.<br />a) as a noscript user, your reader won&#39;t know which of the dozen bs js sources to (temporarily) allow<br />b) even if you allow js, it won&#39;t work. &quot;Can&#39;t find brush for: clj&quot;<br />c) you can&#39;t just read it. No JS: no content? Fail!<br /><br />For a bit of potential syntax highlighting, you break your article. I applaud you, dear developer.</div>
+</div>
+<div class='comment'>
+<div class='author'>nodename.com</div>
+<div class='content'>
+Yes, keep it going!</div>
+</div>
+</div>
+
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[TDD in Midje in a Nutshell]]></title>
+    <link href="http://AlexBaranosky.github.io/blog/2012/02/19/tdd-in-midje-in-nutshell/"/>
+    <updated>2012-02-19T17:41:00-08:00</updated>
+    <id>http://AlexBaranosky.github.io/blog/2012/02/19/tdd-in-midje-in-nutshell</id>
+    <content type="html"><![CDATA[[Midje](https://github.com/marick/Midje) is a Clojure testing library supporting a top-down mock function style of development, but also equally well supports a bottom-up style.
+
+This is an introductory article, and depending on the response, there will be more articles about some of the intermediate and advanced features.
+
+## Elegant Examples
+
+Midje starts with a simple premise: that tests should be elegant and readable.
+
+When was the last time you saw code samples like this in somebody&#8217;s blog, gist, or book?
+
+### EXAMPLE:
+
+_As you can see the foo function always returns: a-ham-sandwich_
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='clojure'><span class='line'><span class="p">(</span><span class="nf">foo</span> <span class="ss">:bar</span> <span class="ss">:baz</span><span class="p">)</span>
+</span><span class='line'><span class="c1">;; =&gt; :a-ham-sandwich</span>
+</span></code></pre></td></tr></table></div></figure>
+
+As developers, I think we write examples like this, because it reads well to us. We&#8217;re used to this sort of pseudo-code example style, and so we can all tell at a glance what&#8217;s happening.
+
+This is where Midje enters. The below is executable Clojure Midje code:
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='clojure'><span class='line'><span class="p">(</span><span class="nf">fact</span> <span class="s">&quot;the foo function always returns :a-ham-sandwich&quot;</span>
+</span><span class='line'>  <span class="p">(</span><span class="nf">foo</span> <span class="ss">:bar</span> <span class="ss">:baz</span><span class="p">)</span> <span class="nv">=&gt;</span> <span class="ss">:a-ham-sandwich</span><span class="p">)</span>
+</span></code></pre></td></tr></table></div></figure>
+You can take that code, and run it, now, and if you&#8217;ve defined foo, then you can run `lein midje` or use midje-mode in Emacs to confirm that foo does in fact always return `:a-ham-sandwich`. (Forget for now that this particular fact doesn&#8217;t very well cover every possible input. Using a generated test input style of testing could be very useful here, but that is for another blog.)
+
+## Describing Code That Doesn&#8217;t Exist - Yet
+
+Let&#8217;s try describing some code that doesn&#8217;t yet exist with these kinds of examples.  I think if we jot down some example cases, it will help us think more clearly about what we&#8217;re trying to get our code doing.
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class='clojure'><span class='line'><span class="p">(</span><span class="nf">fact</span> <span class="s">&quot;doubles odd numbers&quot;</span>
+</span><span class='line'>  <span class="p">(</span><span class="nf">my-func</span> <span class="mi">3</span><span class="p">)</span> <span class="nv">=&gt;</span> <span class="mi">6</span><span class="p">)</span>
+</span><span class='line'>
+</span><span class='line'><span class="p">(</span><span class="nf">fact</span> <span class="s">&quot;triples even numbers&quot;</span>
+</span><span class='line'>  <span class="p">(</span><span class="nf">my-func</span> <span class="mi">4</span><span class="p">)</span> <span class="nv">=&gt;</span> <span class="mi">12</span><span class="p">)</span>
+</span></code></pre></td></tr></table></div></figure>
+
+We can run these examples now. First thing you&#8217;ll notice is that we&#8217;re getting errors; that&#8217;s of course because we have not yet written any code. Let&#8217;s add the my-func function.
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='clojure'><span class='line'><span class="p">(</span><span class="kd">defn </span><span class="nv">my-func</span> <span class="p">[</span><span class="nv">n</span><span class="p">]</span> <span class="p">)</span>
+</span></code></pre></td></tr></table></div></figure>
+Let&#8217;s be cautious and just try to get one of these facts working first.
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='clojure'><span class='line'><span class="p">(</span><span class="kd">defn </span><span class="nv">my-func</span> <span class="p">[</span><span class="nv">n</span><span class="p">]</span>
+</span><span class='line'>  <span class="p">(</span><span class="nb">* </span><span class="mi">2</span> <span class="nv">n</span><span class="p">))</span>
+</span></code></pre></td></tr></table></div></figure>
+
+This seems to work&#8230; but for only the first fact. (There&#8217;s a lot to be said for how effectively TDD can help you to stay focused on the task at hand.)
+
+So let&#8217;s get my-func to pass the second fact as well.
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class='clojure'><span class='line'><span class="p">(</span><span class="kd">defn </span><span class="nv">my-func</span> <span class="p">[</span><span class="nv">n</span><span class="p">]</span>
+</span><span class='line'>  <span class="p">(</span><span class="k">if </span><span class="p">(</span><span class="nf">odd?</span> <span class="nv">n</span><span class="p">)</span>
+</span><span class='line'>    <span class="p">(</span><span class="nb">* </span><span class="mi">2</span> <span class="nv">n</span><span class="p">)</span>
+</span><span class='line'>    <span class="p">(</span><span class="nb">* </span><span class="mi">3</span> <span class="nv">n</span><span class="p">))</span>
+</span></code></pre></td></tr></table></div></figure>
+
+Running those examples again with lein midje or midje mode, we see that they do indeed pass.
+
+But there&#8217;s one more thing. There is a little bit of duplication left in my-func. Let&#8217;s take a second, and refactor this a little.
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class='clojure'><span class='line'><span class="p">(</span><span class="kd">defn </span><span class="nv">my-func</span> <span class="p">[</span><span class="nv">n</span><span class="p">]</span>
+</span><span class='line'>  <span class="p">(</span><span class="k">let </span><span class="p">[</span><span class="nv">multiplier</span> <span class="p">(</span><span class="k">if </span><span class="p">(</span><span class="nf">odd?</span> <span class="nv">n</span><span class="p">)</span> <span class="mi">2</span> <span class="mi">3</span><span class="p">)]</span>
+</span><span class='line'>    <span class="p">(</span><span class="nb">* </span><span class="nv">multiplier</span> <span class="nv">n</span><span class="p">))</span>
+</span></code></pre></td></tr></table></div></figure>
+
+Now that we&#8217;ve revealed a new concept of a multiplier in our code, it looks like we are done.  Our code works as advertised.
+
+## TDD Recap
+
+You just learned:
+
+*   how to use Midje facts as a form of executable examples
+*   how to do TDD. Nice.
+
+I was sneaky just then. Without letting you know what I was doing, I&#8217;ve walked you through the 4 steps of TDD. Decide what you are testing, write a failing test, make that test pass, refactor the code to have a good design.
+
+## TDD Steps:
+
+1.  We chose a new piece of functionality we wanted the code to have.
+2.  We wrote a failing test.  We ran it.  We saw it fail. In Midje, we like to think of this step as taking some time to describe the facts of the future version of the code.
+3.  We wrote as little code as possible to make the test pass. In Midje, we think of this step as bringing the code up to date with the new facts.
+4.  We took some time to reorganize the code - giving it better structure, removing duplication, adjusting the naming, etc. Repeat.
+
+That&#8217;s TDD in Midje in a nutshell.
+
+What did you think? Interested in hearing some more intermediate or advanced TDD and Midje concepts and exercises?
+
+## Technicalities
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+</pre></td><td class='code'><pre><code class='clojure'><span class='line'><span class="c1">;; project.clj  </span>
+</span><span class='line'><span class="p">(</span><span class="kd">defproject </span><span class="nv">my-project</span> <span class="s">&quot;0.1.0&quot;</span>
+</span><span class='line'>  <span class="ss">:dev-dependencies</span> <span class="p">[[</span><span class="nv">lein-midje</span> <span class="s">&quot;1.0.8&quot;</span><span class="p">]</span>
+</span><span class='line'>                     <span class="p">[</span><span class="nv">midje</span> <span class="s">&quot;1.4.0-SNAPSHOT&quot;</span><span class="p">]])</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1">;; example with ns macro  </span>
+</span><span class='line'><span class="p">(</span><span class="kd">ns </span><span class="nv">my-ns.t-core</span>
+</span><span class='line'>  <span class="p">(</span><span class="ss">:use</span> <span class="nv">my-ns.core</span>
+</span><span class='line'>        <span class="nv">midje.sweet</span><span class="p">))</span>
+</span><span class='line'>
+</span><span class='line'><span class="p">(</span><span class="nf">fact</span>
+</span><span class='line'>  <span class="p">(</span><span class="nf">foo</span> <span class="ss">:bar</span> <span class="ss">:baz</span><span class="p">)</span> <span class="nv">=&gt;</span> <span class="ss">:a-ham-sandwich</span><span class="p">)</span>
+</span></code></pre></td></tr></table></div></figure>
+
 <h2>Comments</h2>
 <div class='comments'>
 <div class='comment'>
