@@ -762,8 +762,92 @@ can you also add the clojure label to it, so it will be propagated into Planet C
   </header>
 
 
-  <div class="entry-content"><div class='post'>
-<div dir="ltr" style="text-align: left;" trbidi="on"> <p>I had written some complicated looking code at work recently (shhh, let&#8217;s keep that between us ok?). Something about it didn&#8217;t seem right to me, but I was busy at the time so I wrote a TODO to come back and find a way to make it simpler.</p> <p>Since the code is so confusing it is virtually impossible to read at a glance and understand its intent, I will explain what it does.  It takes in a map where the keys are numbers of days over a given SLA, and the values are the number of shipments that were over the SLA by that amount of days.  The map actually can and does have more keys on it than that, but for the purposes of this article we can ignore them.  The function takes that map and converts it to a version where the values are not counts of the individual SLA, but instead the current running percentage totals.</p> An example:  <script class="brush: clj; gutter: false;" type="syntaxhighlighter"><![CDATA[   (cumulative-percentage-past-SLA-map {:past-SLA-1 2 :past-SLA-2 1 :past-SLA-3 3} 4 10)   ;; => {:past-SLA-1 0.60 :past-SLA-2 0.70 :past-SLA-3 100.0} ]]></script> <p>What makes this code end up so complicated is that it is complecting three things: generating the series of sums, dividing them, and creating a new map to return.</p> <br/><pre class="brush: clj; gutter: false;"><br />(def ^:private all-past-SLA-x-keys [:past-SLA-1 :past-SLA-2 :past-SLA-3])<br /><br />(defn- cumulative-percentage-past-SLA-map<br />  "Takes a count-based report and generates percentages that accumulate."<br />  [count-based-past-SLA-map met-SLA total-shipments]<br />  (-> (reduce (fn [[past-SLA-map total-past-SLA-so-far] days-past-key]<br />                (let [updated-past-SLA-map (update-in past-SLA-map<br />                                                      [days-past-key]<br />                                                      #(/ (+ total-past-SLA-so-far %) total-shipments))<br />                      updated-total-past-SLA (+ total-past-SLA-so-far (get past-SLA-map days-past-key))]<br />                  [updated-past-SLA-map updated-total-past-SLA]))<br />              [count-based-past-SLA-map met-SLA]<br />              all-past-SLA-x-keys)<br />      first))<br /></pre><br/> <h3>The solution is to break those 3 parts up.</h3> <p>First we generate the series of sums using <a href="http://clojuredocs.org/clojure_core/clojure.core/reductions">reductions</a>.</p> <p>Second, we divide each by the total to convert them to percentages.</p> <p>Thirdly, we create a new map with percents as the values instead of counts.</p> <br/><pre class="brush: clj; gutter: false;"><br />(defn- cumulative-percentage-past-SLA-map<br />  "Takes a count-based report and generates percentages that accumulate."<br />  [count-based-past-SLA-map num-met-SLA total-shipments]<br />  (let [counts (map #(get count-based-past-SLA-map %) all-past-SLA-x-keys)<br />        running-totals (rest (reductions + num-met-SLA counts))<br />        percents (map #(/ % total-shipments) running-totals)]<br />    (zipmap all-past-SLA-x-keys<br />            percents)))<br /></pre><br/> <p>Another thing you might notice in this code is that I purposely used the more verbose `#(get count-based-past-SLA-map %)` when I could have just used `count-based-past-SLA-map`, as it is already a function!  I prefer to err on the side of making my code as obvious as possible, so I try to avoid using data structures as functions except under a few special cases. But I guess that would be a different topic for a different blog.</p> </div></div>
+  <div class="entry-content">I had written some complicated looking code at work recently (shhh, let&#8217;s keep that between us ok?). Something about it didn&#8217;t seem right to me, but I was busy at the time so I wrote a TODO to come back and find a way to make it simpler.
+
+Since the code is so confusing it is virtually impossible to read at a glance and understand its intent, I will explain what it does.  It takes in a map where the keys are numbers of days over a given SLA, and the values are the number of shipments that were over the SLA by that amount of days.  The map actually can and does have more keys on it than that, but for the purposes of this article we can ignore them.  The function takes that map and converts it to a version where the values are not counts of the individual SLA, but instead the current running percentage totals.
+
+### An example: 
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class='clojure'><span class='line'><span class="p">(</span><span class="nf">cumulative-percentage-past-SLA-map</span>
+</span><span class='line'>  <span class="p">{</span><span class="ss">:past-SLA-1</span> <span class="mi">2</span> <span class="ss">:past-SLA-2</span> <span class="mi">1</span> <span class="ss">:past-SLA-3</span> <span class="mi">3</span><span class="p">}</span>
+</span><span class='line'>  <span class="mi">4</span>
+</span><span class='line'>  <span class="mi">10</span><span class="p">)</span>
+</span><span class='line'><span class="c1">;; =&gt; {:past-SLA-1 0.60 :past-SLA-2 0.70 :past-SLA-3 100.0}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+What makes this code end up so complicated is that it is complecting three things: generating the series of sums, dividing them, and creating a new map to return.
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+</pre></td><td class='code'><pre><code class='clojure'><span class='line'><span class="p">(</span><span class="k">def </span><span class="nv">all-past-SLA-x-keys</span> <span class="p">[</span><span class="ss">:past-SLA-1</span> <span class="ss">:past-SLA-2</span> <span class="ss">:past-SLA-3</span><span class="p">])</span>
+</span><span class='line'>
+</span><span class='line'><span class="p">(</span><span class="kd">defn- </span><span class="nv">cumulative-percentage-past-SLA-map</span>
+</span><span class='line'>  <span class="s">&quot;Takes a count-based report and generates percents that accumulate.&quot;</span>
+</span><span class='line'>  <span class="p">[</span><span class="nv">count-based-past-SLA-map</span> <span class="nv">met-SLA</span> <span class="nv">total-shipments</span><span class="p">]</span>
+</span><span class='line'>  <span class="p">(</span><span class="nb">-&gt; </span><span class="p">(</span><span class="nb">reduce </span><span class="p">(</span><span class="k">fn </span><span class="p">[[</span><span class="nv">past-SLA-map</span> <span class="nv">total-past-SLA-so-far</span><span class="p">]</span> <span class="nv">days-past-key</span><span class="p">]</span>
+</span><span class='line'>                <span class="p">(</span><span class="k">let </span><span class="p">[</span><span class="nv">updated-past-SLA-map</span>
+</span><span class='line'>                       <span class="p">(</span><span class="nf">update-in</span> <span class="nv">past-SLA-map</span>
+</span><span class='line'>                                  <span class="p">[</span><span class="nv">days-past-key</span><span class="p">]</span>
+</span><span class='line'>                                  <span class="o">#</span><span class="p">(</span><span class="nb">/ </span><span class="p">(</span><span class="nb">+ </span><span class="nv">total-past-SLA-so-far</span> <span class="nv">%</span><span class="p">)</span>
+</span><span class='line'>                                      <span class="nv">total-shipments</span><span class="p">))</span>
+</span><span class='line'>                      <span class="nv">updated-total-past-SLA</span>
+</span><span class='line'>                        <span class="p">(</span><span class="nb">+ </span><span class="nv">total-past-SLA-so-far</span>
+</span><span class='line'>                           <span class="p">(</span><span class="nb">get </span><span class="nv">past-SLA-map</span> <span class="nv">days-past-key</span><span class="p">))]</span>
+</span><span class='line'>                  <span class="p">[</span><span class="nv">updated-past-SLA-map</span> <span class="nv">updated-total-past-SLA</span><span class="p">]))</span>
+</span><span class='line'>              <span class="p">[</span><span class="nv">count-based-past-SLA-map</span> <span class="nv">met-SLA</span><span class="p">]</span>
+</span><span class='line'>              <span class="nv">all-past-SLA-x-keys</span><span class="p">)</span>
+</span><span class='line'>      <span class="nv">first</span><span class="p">))</span>
+</span></code></pre></td></tr></table></div></figure>
+
+## The solution is to break those 3 parts up.
+
+First we generate the series of sums using [reductions](http://clojuredocs.org/clojure_core/clojure.core/reductions).
+
+Second, we divide each by the total to convert them to percentages.
+
+Thirdly, we create a new map with percents as the values instead of counts.
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+</pre></td><td class='code'><pre><code class='clojure'><span class='line'><span class="p">(</span><span class="kd">defn- </span><span class="nv">cumulative-percentage-past-SLA-map</span>
+</span><span class='line'>  <span class="s">&quot;Takes a count-based report and generates percents that accumulate.&quot;</span>
+</span><span class='line'>  <span class="p">[</span><span class="nv">count-based-past-SLA-map</span> <span class="nv">num-met-SLA</span> <span class="nv">total-shipments</span><span class="p">]</span>
+</span><span class='line'>  <span class="p">(</span><span class="k">let </span><span class="p">[</span><span class="nv">counts</span> <span class="p">(</span><span class="nb">map </span><span class="o">#</span><span class="p">(</span><span class="nb">get </span><span class="nv">count-based-past-SLA-map</span> <span class="nv">%</span><span class="p">)</span>
+</span><span class='line'>                    <span class="nv">all-past-SLA-x-keys</span><span class="p">)</span>
+</span><span class='line'>        <span class="nv">running-totals</span> <span class="p">(</span><span class="nb">rest </span><span class="p">(</span><span class="nf">reductions</span> <span class="nb">+ </span><span class="nv">num-met-SLA</span> <span class="nv">counts</span><span class="p">))</span>
+</span><span class='line'>        <span class="nv">percents</span> <span class="p">(</span><span class="nb">map </span><span class="o">#</span><span class="p">(</span><span class="nb">/ </span><span class="nv">%</span> <span class="nv">total-shipments</span><span class="p">)</span> <span class="nv">running-totals</span><span class="p">)]</span>
+</span><span class='line'>    <span class="p">(</span><span class="nb">zipmap </span><span class="nv">all-past-SLA-x-keys</span> <span class="nv">percents</span><span class="p">)))</span>
+</span></code></pre></td></tr></table></div></figure>
+
+Another thing you might notice in this code is that I purposely used the more verbose `#(get count-based-past-SLA-map %)` when I could have just used `count-based-past-SLA-map`, as it is already a function!  I prefer to err on the side of making my code as obvious as possible, so I try to avoid using data structures as functions except under a few special cases. But I guess that would be a different topic for a different blog.
+
 <h2>Comments</h2>
 <div class='comments'>
 <div class='comment'>
@@ -787,6 +871,142 @@ IMO this is an area where Clojure idioms venture into &quot;fancy&quot; territor
 I don&#39;t agree with the last part&#8230; In clojure you just don&#39;t use get, it is more idiomatic the other way. Using get just make it more confusing IMHO</div>
 </div>
 </div>
+</div>
+  
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2012/12/02/reducing-complexity/">Reducing Complexity</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2012-12-02T02:33:00-08:00" pubdate data-updated="true">Dec 2<span>nd</span>, 2012</time>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>I had written some complicated looking code at work recently (shhh, let&rsquo;s keep that between us ok?). Something about it didn&rsquo;t seem right to me, but I was busy at the time so I wrote a TODO to come back and find a way to make it simpler.</p>
+
+<p>Since the code is so confusing it is virtually impossible to read at a glance and understand its intent, I will explain what it does.  It takes in a map where the keys are numbers of days over a given SLA, and the values are the number of shipments that were over the SLA by that amount of days.  The map actually can and does have more keys on it than that, but for the purposes of this article we can ignore them.  The function takes that map and converts it to a version where the values are not counts of the individual SLA, but instead the current running percentage totals.</p>
+
+<h3>An example:</h3>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='clojure'><span class='line'><span class="p">(</span><span class="nf">cumulative-percentage-past-SLA-map</span> <span class="p">{</span><span class="ss">:past-SLA-1</span> <span class="mi">2</span> <span class="ss">:past-SLA-2</span> <span class="mi">1</span> <span class="ss">:past-SLA-3</span> <span class="mi">3</span><span class="p">}</span> <span class="mi">4</span> <span class="mi">10</span><span class="p">)</span>
+</span><span class='line'><span class="c1">;; =&gt; {:past-SLA-1 0.60 :past-SLA-2 0.70 :past-SLA-3 100.0}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>What makes this code end up so complicated is that it is complecting three things: generating the series of sums, dividing them, and creating a new map to return.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+</pre></td><td class='code'><pre><code class='clojure'><span class='line'><span class="p">(</span><span class="k">def </span><span class="o">^</span><span class="ss">:private</span> <span class="nv">all-past-SLA-x-keys</span> <span class="p">[</span><span class="ss">:past-SLA-1</span> <span class="ss">:past-SLA-2</span> <span class="ss">:past-SLA-3</span><span class="p">])</span>
+</span><span class='line'>
+</span><span class='line'><span class="p">(</span><span class="kd">defn- </span><span class="nv">cumulative-percentage-past-SLA-map</span>
+</span><span class='line'>  <span class="s">&quot;Takes a count-based report and generates percentages that accumulate.&quot;</span>
+</span><span class='line'>  <span class="p">[</span><span class="nv">count-based-past-SLA-map</span> <span class="nv">met-SLA</span> <span class="nv">total-shipments</span><span class="p">]</span>
+</span><span class='line'>  <span class="p">(</span><span class="nb">-&gt; </span><span class="p">(</span><span class="nb">reduce </span><span class="p">(</span><span class="k">fn </span><span class="p">[[</span><span class="nv">past-SLA-map</span> <span class="nv">total-past-SLA-so-far</span><span class="p">]</span> <span class="nv">days-past-key</span><span class="p">]</span>
+</span><span class='line'>                <span class="p">(</span><span class="k">let </span><span class="p">[</span><span class="nv">updated-past-SLA-map</span> <span class="p">(</span><span class="nf">update-in</span> <span class="nv">past-SLA-map</span>
+</span><span class='line'>                                                      <span class="p">[</span><span class="nv">days-past-key</span><span class="p">]</span>
+</span><span class='line'>                                                      <span class="o">#</span><span class="p">(</span><span class="nb">/ </span><span class="p">(</span><span class="nb">+ </span><span class="nv">total-past-SLA-so-far</span> <span class="nv">%</span><span class="p">)</span> <span class="nv">total-shipments</span><span class="p">))</span>
+</span><span class='line'>                      <span class="nv">updated-total-past-SLA</span> <span class="p">(</span><span class="nb">+ </span><span class="nv">total-past-SLA-so-far</span> <span class="p">(</span><span class="nb">get </span><span class="nv">past-SLA-map</span> <span class="nv">days-past-key</span><span class="p">))]</span>
+</span><span class='line'>                  <span class="p">[</span><span class="nv">updated-past-SLA-map</span> <span class="nv">updated-total-past-SLA</span><span class="p">]))</span>
+</span><span class='line'>              <span class="p">[</span><span class="nv">count-based-past-SLA-map</span> <span class="nv">met-SLA</span><span class="p">]</span>
+</span><span class='line'>              <span class="nv">all-past-SLA-x-keys</span><span class="p">)</span>
+</span><span class='line'>      <span class="nv">first</span><span class="p">))</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>The solution is to break those 3 parts up.</h2>
+
+<p>First we generate the series of sums using <a href="http://clojuredocs.org/clojure_core/clojure.core/reductions">reductions</a>.</p>
+
+<p>Second, we divide each by the total to convert them to percentages.</p>
+
+<p>Thirdly, we create a new map with percents as the values instead of counts.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+</pre></td><td class='code'><pre><code class='clojure'><span class='line'><span class="p">(</span><span class="kd">defn- </span><span class="nv">cumulative-percentage-past-SLA-map</span>
+</span><span class='line'>  <span class="s">&quot;Takes a count-based report and generates percentages that accumulate.&quot;</span>
+</span><span class='line'>  <span class="p">[</span><span class="nv">count-based-past-SLA-map</span> <span class="nv">num-met-SLA</span> <span class="nv">total-shipments</span><span class="p">]</span>
+</span><span class='line'>  <span class="p">(</span><span class="k">let </span><span class="p">[</span><span class="nv">counts</span> <span class="p">(</span><span class="nb">map </span><span class="o">#</span><span class="p">(</span><span class="nb">get </span><span class="nv">count-based-past-SLA-map</span> <span class="nv">%</span><span class="p">)</span> <span class="nv">all-past-SLA-x-keys</span><span class="p">)</span>
+</span><span class='line'>        <span class="nv">running-totals</span> <span class="p">(</span><span class="nb">rest </span><span class="p">(</span><span class="nf">reductions</span> <span class="nb">+ </span><span class="nv">num-met-SLA</span> <span class="nv">counts</span><span class="p">))</span>
+</span><span class='line'>        <span class="nv">percents</span> <span class="p">(</span><span class="nb">map </span><span class="o">#</span><span class="p">(</span><span class="nb">/ </span><span class="nv">%</span> <span class="nv">total-shipments</span><span class="p">)</span> <span class="nv">running-totals</span><span class="p">)]</span>
+</span><span class='line'>    <span class="p">(</span><span class="nb">zipmap </span><span class="nv">all-past-SLA-x-keys</span>
+</span><span class='line'>            <span class="nv">percents</span><span class="p">)))</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Another thing you might notice in this code is that I purposely used the more verbose <code>#(get count-based-past-SLA-map %)</code> when I could have just used <code>count-based-past-SLA-map</code>, as it is already a function!  I prefer to err on the side of making my code as obvious as possible, so I try to avoid using data structures as functions except under a few special cases. But I guess that would be a different topic for a different blog.</p>
+
+<h2>Comments</h2>
+
+
+<div class='comments'>
+<div class='comment'>
+<div class='author'>Alex Baranosky</div>
+<div class='content'>
+I would probably do it that way if I wrote it today, too, without the `get`.  But I don&#39;t think it is a huge deal either way.</div>
+</div>
+<div class='comment'>
+<div class='author'>Timothy Baldridge</div>
+<div class='content'>
++1 I&#39;d rather treat functions as maps, than introduce syntactic sugar with #() and %.</div>
+</div>
+<div class='comment'>
+<div class='author'>Alex Baranosky</div>
+<div class='content'>
+IMO this is an area where Clojure idioms venture into &quot;fancy&quot; territory.  It is a little Perlish.  At the end of the day it is a stylistic concern  and that kind of stuff is something that depends on what your team is most comfortable with. YMMV.</div>
+</div>
+<div class='comment'>
+<div class='author'>Unknown</div>
+<div class='content'>
+I don&#39;t agree with the last part&#8230; In clojure you just don&#39;t use get, it is more idiomatic the other way. Using get just make it more confusing IMHO</div>
+</div>
+</div>
+
 </div>
   
   
@@ -1416,43 +1636,6 @@ Yes, keep it going!</div>
 
 
 <p>It&rsquo;s pretty powerful the way that macros give you the ability to shape your library so that it is free of boiler plate.</p>
-</div>
-  
-  
-
-
-    </article>
-  
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/2011/10/13/simplicity-is-prerequisuite-for/">Simplicity Is a Prerequisuite for Reliability</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2011-10-13T09:04:00-07:00" pubdate data-updated="true">Oct 13<span>th</span>, 2011</time>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><div class='post'>
-<div style="color: black; font-family: Arial,Helvetica,sans-serif;"><i><span style="font-size: small;">(This blog post is based on <a href="http://www.codequarterly.com/2011/rich-hickey/">Rich Hickey&#8217;s</a> keynote speech at Strange Loop 2011)</span></i></div><div style="color: black; font-family: Arial,Helvetica,sans-serif;"><br /></div><div style="color: black; font-family: Arial,Helvetica,sans-serif;"><b><span style="font-size: large;">Word origins</span></b></div><div style="color: black; font-family: Arial,Helvetica,sans-serif;"><br /></div><div style="color: black; font-family: Arial,Helvetica,sans-serif;">Could we go back to what these words REALLY mean?</div><div style="color: black; font-family: Arial,Helvetica,sans-serif;"><br /></div><div style="color: black; font-family: Arial,Helvetica,sans-serif;">Simple: sim-plex - one fold/braid</div><div style="color: black; font-family: Arial,Helvetica,sans-serif;"><br /></div><div style="color: black; font-family: Arial,Helvetica,sans-serif;">Complex: many folds/braids</div><div style="color: black; font-family: Arial,Helvetica,sans-serif;"><br /></div><div style="color: black; font-family: Arial,Helvetica,sans-serif;">Easy: &#8230; lie near</div><div style="color: black; font-family: Arial,Helvetica,sans-serif;"><br /></div><div style="color: black; font-family: Arial,Helvetica,sans-serif;"><span style="font-size: large;"><b>Simple</b></span></div><div style="color: black; font-family: Arial,Helvetica,sans-serif;"><br /></div><div style="color: black; font-family: Arial,Helvetica,sans-serif;">One fold/braid</div><div style="color: black; font-family: Arial,Helvetica,sans-serif;">One role</div><div style="color: black; font-family: Arial,Helvetica,sans-serif;">One task!</div><div style="color: black; font-family: Arial,Helvetica,sans-serif;">One concept</div><div style="color: black; font-family: Arial,Helvetica,sans-serif;">One dimension</div><div style="color: black; font-family: Arial,Helvetica,sans-serif;"><br /></div><div style="color: black; font-family: Arial,Helvetica,sans-serif;">But not</div><div style="color: black; font-family: Arial,Helvetica,sans-serif;">&nbsp;&nbsp;&nbsp; one instance</div><div style="color: black; font-family: Arial,Helvetica,sans-serif;">&nbsp;&nbsp;&nbsp; one operation</div><div style="color: black; font-family: Arial,Helvetica,sans-serif;">&nbsp;&nbsp;&nbsp; it&#8217;s about lack of interleaving, it&#8217;s not cardinality</div><div style="color: black; font-family: Arial,Helvetica,sans-serif;"><br /></div><div style="color: black; font-family: Arial,Helvetica,sans-serif;"><i>Interleavage is an Objective notion</i></div><div style="color: black; font-family: Arial,Helvetica,sans-serif;"><br /></div><div style="color: black; font-family: Arial,Helvetica,sans-serif;"><span style="font-size: large;"><b>Easy</b></span></div><div style="color: black; font-family: Arial,Helvetica,sans-serif;"><br /></div><div style="color: black; font-family: Arial,Helvetica,sans-serif;">Near, physically</div><div style="color: black; font-family: Arial,Helvetica,sans-serif;">&nbsp;&nbsp;&nbsp; on our own hard drive, in our toolset, IDE, apt get, gem install.</div><div style="color: black; font-family: Arial,Helvetica,sans-serif;"><br /></div><div style="color: black; font-family: Arial,Helvetica,sans-serif;">Near, to our current understand/skill set</div><div style="color: black; font-family: Arial,Helvetica,sans-serif;">&nbsp;&nbsp;&nbsp; familiar - mentally near.</div><div style="color: black; font-family: Arial,Helvetica,sans-serif;"><br /></div><div style="color: black; font-family: Arial,Helvetica,sans-serif;">We&#8217;re generally overly fixated on these two meanings of easy.</div><div style="color: black; font-family: Arial,Helvetica,sans-serif;"><br /></div><div style="color: black; font-family: Arial,Helvetica,sans-serif;">If you want everything to be familiar, you learn NOTHING.</div><div style="color: black; font-family: Arial,Helvetica,sans-serif;"><br /></div><div style="color: black; font-family: Arial,Helvetica,sans-serif;">There&#8217;s a third meaning of easy:</div><div style="color: black; font-family: Arial,Helvetica,sans-serif;"><br /></div><div style="color: black; font-family: Arial,Helvetica,sans-serif;">Near, to our capabilities.</div><div style="color: black; font-family: Arial,Helvetica,sans-serif;"><br /></div><div style="color: black; font-family: Arial,Helvetica,sans-serif;"><i>Easy is RELATIVE - unlike simple</i></div><div style="color: black; font-family: Arial,Helvetica,sans-serif;"><br /></div><div style="color: black; font-family: Arial,Helvetica,sans-serif;"><span style="font-size: large;"><b>Limits</b></span></div><div style="color: black; font-family: Arial,Helvetica,sans-serif;"><br /></div><div style="color: black; font-family: Arial,Helvetica,sans-serif;">We can only hope to make reliable those things we understand.</div><div style="color: black; font-family: Arial,Helvetica,sans-serif;"><br /></div><div style="color: black; font-family: Arial,Helvetica,sans-serif;">We can only consider a few things at a time.</div><div style="color: black; font-family: Arial,Helvetica,sans-serif;"><br /></div><div style="color: black; font-family: Arial,Helvetica,sans-serif;">Intertwined things must be considered together. This is a mental burden and the intertwining tends to grow combinatorially.</div><div style="color: black; font-family: Arial,Helvetica,sans-serif;"><br /></div><div style="color: black; font-family: Arial,Helvetica,sans-serif;">Complexity undermines understanding.</div><div style="color: black; font-family: Arial,Helvetica,sans-serif;"><br /></div><div style="color: black; font-family: Arial,Helvetica,sans-serif;"><span style="font-size: large;"><b>Simplicity Driven Development</b></span></div><div style="color: black; font-family: Arial,Helvetica,sans-serif;"><span style="font-size: small;"><br /></span></div><div style="color: black; font-family: Arial,Helvetica,sans-serif;"><span style="font-size: large;"><span style="font-size: small;">If you ignore complexity - you will invariably sloooowwww down over time.<br /><br />If you focus on ease - you will have a fast at start, and slow down every iteration to redo everything.<br /><br />If you focus on simplicity - you will go a bit slower at the start, but then ramp up to a higher steady state of productivity.</span><b> </b></span></div><div style="color: black; font-family: Arial,Helvetica,sans-serif;"><br /></div><div style="color: black; font-family: Arial,Helvetica,sans-serif;"><span style="font-size: large;"><b>What is In Your Toolkit?</b></span></div><div style="color: black; font-family: Arial,Helvetica,sans-serif;"><br /></div><div style="color: black; font-family: Arial,Helvetica,sans-serif;"><b>Complex</b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <b>Simple</b></div><div style="color: black; font-family: Arial,Helvetica,sans-serif;">state, objects&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &nbsp; &nbsp; values</div><div style="color: black; font-family: Arial,Helvetica,sans-serif;">methods&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &nbsp; &nbsp; &nbsp;&nbsp; functions, namespaces</div><div style="color: black; font-family: Arial,Helvetica,sans-serif;">vars&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; &nbsp;&nbsp;&nbsp;&nbsp;&nbsp; managed refs</div><div style="color: black; font-family: Arial,Helvetica,sans-serif;">inheritence, switch, matching&nbsp; polymorphism</div><div style="color: black; font-family: Arial,Helvetica,sans-serif;">syntax&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; data</div><div style="color: black; font-family: Arial,Helvetica,sans-serif;">imperative loops, fold&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; set functions</div><div style="color: black; font-family: Arial,Helvetica,sans-serif;">actors&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; queues</div><div style="color: black; font-family: Arial,Helvetica,sans-serif;">ORM&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; declarative data manipulation</div><div style="color: black; font-family: Arial,Helvetica,sans-serif;">conditionals&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; rules</div><div style="color: black; font-family: Arial,Helvetica,sans-serif;">inconsistency&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; consistency</div><div style="color: black; font-family: Arial,Helvetica,sans-serif;"><span style="font-size: large;"><b><br /></b></span></div><div style="color: black; font-family: Arial,Helvetica,sans-serif;"><span style="font-size: large;"><b>Complect</b></span></div><div style="color: black; font-family: Arial,Helvetica,sans-serif;"><br /></div><div style="color: black; font-family: Arial,Helvetica,sans-serif;">archaic word meaning &#8220;to braid together&#8221;</div><div style="color: black; font-family: Arial,Helvetica,sans-serif;"><br /></div><div style="color: black; font-family: Arial,Helvetica,sans-serif;">don&#8217;t do it</div><div style="color: black; font-family: Arial,Helvetica,sans-serif;"><br /></div><div style="color: black; font-family: Arial,Helvetica,sans-serif;">complecting things is a source complexity</div><div style="color: black; font-family: Arial,Helvetica,sans-serif;"><br /></div><div style="color: black; font-family: Arial,Helvetica,sans-serif;">best to avoid in the first place</div><div style="color: black; font-family: Arial,Helvetica,sans-serif;"><span style="font-size: large;"><br /></span></div><div style="color: black; font-family: Arial,Helvetica,sans-serif;"><span style="font-size: large;"><b>Compose</b></span></div><div style="color: black; font-family: Arial,Helvetica,sans-serif;"><br /></div><div style="color: black; font-family: Arial,Helvetica,sans-serif;">meaning &#8220;to place together&#8221;</div><div style="color: black; font-family: Arial,Helvetica,sans-serif;"><br /></div><div style="color: black; font-family: Arial,Helvetica,sans-serif;">composing simple components is the way we write robust software!</div><div style="color: black; font-family: Arial,Helvetica,sans-serif;"><br /></div><div style="color: black; font-family: Arial,Helvetica,sans-serif;">We can make simple systems by making them modular.</div><div style="color: black; font-family: Arial,Helvetica,sans-serif;"><br /></div><div style="color: black; font-family: Arial,Helvetica,sans-serif;">What do we want to make these two parts of code allowed to think about??</div><div style="color: black; font-family: Arial,Helvetica,sans-serif;"><br /></div><div style="color: black; font-family: Arial,Helvetica,sans-serif;">In other words, program towards abstractions!</div><div style="color: black; font-family: Arial,Helvetica,sans-serif;"><br /></div><div style="color: black; font-family: Arial,Helvetica,sans-serif;">Don&#8217;t be fooled by code organization. Two things can be physically separate, but to change one means you need to change the other - they are complected</div><div style="color: black; font-family: Arial,Helvetica,sans-serif;"><br /></div><div style="color: black; font-family: Arial,Helvetica,sans-serif;"><span style="font-size: large;"><b>State is Never Simple</b></span></div><div style="color: black; font-family: Arial,Helvetica,sans-serif;"><br /></div><div style="color: black; font-family: Arial,Helvetica,sans-serif;">It complects value and time</div><div style="color: black; font-family: Arial,Helvetica,sans-serif;"><br /></div><div style="color: black; font-family: Arial,Helvetica,sans-serif;">But it is so EASY!</div><div style="color: black; font-family: Arial,Helvetica,sans-serif;"><br /></div><div style="color: black; font-family: Arial,Helvetica,sans-serif;">It interleaves everything that touches it, directly or indirectly.</div><div style="color: black; font-family: Arial,Helvetica,sans-serif;"><br /></div><div style="color: black; font-family: Arial,Helvetica,sans-serif;"><span style="font-size: large;"><b>Programming Features That Complect</b></span> </div><div style="color: black; font-family: Arial,Helvetica,sans-serif;"><br /></div><div style="color: black; font-family: Arial,Helvetica,sans-serif;"><b>Feature&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Complects</b></div><div style="color: black; font-family: Arial,Helvetica,sans-serif;">State&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; everything they touch</div><div style="color: black; font-family: Arial,Helvetica,sans-serif;">Objects&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; state, identity, value</div><div style="color: black; font-family: Arial,Helvetica,sans-serif;">Methods&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; function and state, namespaces</div><div style="color: black; font-family: Arial,Helvetica,sans-serif;">Syntax &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; meaning, order</div><div style="color: black; font-family: Arial,Helvetica,sans-serif;">Inheritance&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; types</div><div style="color: black; font-family: Arial,Helvetica,sans-serif;">switching/matching&nbsp;&nbsp; multiple who what pairs</div><div style="color: black; font-family: Arial,Helvetica,sans-serif;">variables&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &nbsp; value, time</div><div style="color: black; font-family: Arial,Helvetica,sans-serif;">loop, fold&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; what/how</div><div style="color: black; font-family: Arial,Helvetica,sans-serif;">actors&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &nbsp; &nbsp; &nbsp;&nbsp;&nbsp;&nbsp; what to do, who does it</div><div style="color: black; font-family: Arial,Helvetica,sans-serif;">ORM&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; OMG</div><div style="color: black; font-family: Arial,Helvetica,sans-serif;"><br /></div><div style="color: black; font-family: Arial,Helvetica,sans-serif;"><i>Simplicity is NOT the same as Easy - Remember that - It is KEY</i></div><div style="color: black; font-family: Arial,Helvetica,sans-serif;"><span style="font-size: large;"><b><br /></b></span></div><div style="color: black; font-family: Arial,Helvetica,sans-serif;"><span style="font-size: large;"><b>The Simplicity Recipe</b></span><br /><br />You do not need C#/Java/C++.&nbsp; You can make big systems with dramatically simpler tools.<br /><br />We make hundreds of variations that make it tough to manipulate the essence of this stuff - data.&nbsp; We should use simple data so we can write code to work on the essence of this stuff.</div><div style="color: black; font-family: Arial,Helvetica,sans-serif;"><br /></div><div style="color: black; font-family: Arial,Helvetica,sans-serif;">Develop sensibilities around entanglement - learn to see the complecting.<br /><br />Tools for reliability like testing, refactoring, etc are all safety nets that are orthogonal to this problem.<br /><br />Choose simple constructs over constructs that encourage braided together code.<br /><br />Simplify the problem space before you start.</div><div style="color: black; font-family: Arial,Helvetica,sans-serif;"><br /></div><div style="color: black; font-family: Arial,Helvetica,sans-serif;">Simplicity often mean you have more things&#8230; it&#8217;s not about counting.</div><div style="color: black; font-family: Arial,Helvetica,sans-serif;"><br /></div><div style="color: black; font-family: Arial,Helvetica,sans-serif;">Reap the benefits!</div></div>
 </div>
   
   

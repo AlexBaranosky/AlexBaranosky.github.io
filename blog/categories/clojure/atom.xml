@@ -4,7 +4,7 @@
   <title><![CDATA[Category: clojure | (elegant coding from a more civilized age)]]></title>
   <link href="http://AlexBaranosky.github.io/blog/categories/clojure/atom.xml" rel="self"/>
   <link href="http://AlexBaranosky.github.io/"/>
-  <updated>2013-10-28T09:05:39-07:00</updated>
+  <updated>2013-10-28T09:14:11-07:00</updated>
   <id>http://AlexBaranosky.github.io/</id>
   <author>
     <name><![CDATA[Alex Baranosky]]></name>
@@ -411,9 +411,160 @@ can you also add the clojure label to it, so it will be propagated into Planet C
     <link href="http://AlexBaranosky.github.io/blog/2012/12/02/reducing-complexity/"/>
     <updated>2012-12-02T02:33:00-08:00</updated>
     <id>http://AlexBaranosky.github.io/blog/2012/12/02/reducing-complexity</id>
-    <content type="html"><![CDATA[<div class='post'>
-<div dir="ltr" style="text-align: left;" trbidi="on"> <p>I had written some complicated looking code at work recently (shhh, let's keep that between us ok?). Something about it didn't seem right to me, but I was busy at the time so I wrote a TODO to come back and find a way to make it simpler.</p> <p>Since the code is so confusing it is virtually impossible to read at a glance and understand its intent, I will explain what it does.  It takes in a map where the keys are numbers of days over a given SLA, and the values are the number of shipments that were over the SLA by that amount of days.  The map actually can and does have more keys on it than that, but for the purposes of this article we can ignore them.  The function takes that map and converts it to a version where the values are not counts of the individual SLA, but instead the current running percentage totals.</p> An example:  <script class="brush: clj; gutter: false;" type="syntaxhighlighter">&lt;![CDATA[   (cumulative-percentage-past-SLA-map {:past-SLA-1 2 :past-SLA-2 1 :past-SLA-3 3} 4 10)   ;; => {:past-SLA-1 0.60 :past-SLA-2 0.70 :past-SLA-3 100.0} ]]&gt;</script> <p>What makes this code end up so complicated is that it is complecting three things: generating the series of sums, dividing them, and creating a new map to return.</p> <br/><pre class="brush: clj; gutter: false;"><br />(def ^:private all-past-SLA-x-keys [:past-SLA-1 :past-SLA-2 :past-SLA-3])<br /><br />(defn- cumulative-percentage-past-SLA-map<br />  "Takes a count-based report and generates percentages that accumulate."<br />  [count-based-past-SLA-map met-SLA total-shipments]<br />  (-> (reduce (fn [[past-SLA-map total-past-SLA-so-far] days-past-key]<br />                (let [updated-past-SLA-map (update-in past-SLA-map<br />                                                      [days-past-key]<br />                                                      #(/ (+ total-past-SLA-so-far %) total-shipments))<br />                      updated-total-past-SLA (+ total-past-SLA-so-far (get past-SLA-map days-past-key))]<br />                  [updated-past-SLA-map updated-total-past-SLA]))<br />              [count-based-past-SLA-map met-SLA]<br />              all-past-SLA-x-keys)<br />      first))<br /></pre><br/> <h3>The solution is to break those 3 parts up.</h3> <p>First we generate the series of sums using <a href="http://clojuredocs.org/clojure_core/clojure.core/reductions">reductions</a>.</p> <p>Second, we divide each by the total to convert them to percentages.</p> <p>Thirdly, we create a new map with percents as the values instead of counts.</p> <br/><pre class="brush: clj; gutter: false;"><br />(defn- cumulative-percentage-past-SLA-map<br />  "Takes a count-based report and generates percentages that accumulate."<br />  [count-based-past-SLA-map num-met-SLA total-shipments]<br />  (let [counts (map #(get count-based-past-SLA-map %) all-past-SLA-x-keys)<br />        running-totals (rest (reductions + num-met-SLA counts))<br />        percents (map #(/ % total-shipments) running-totals)]<br />    (zipmap all-past-SLA-x-keys<br />            percents)))<br /></pre><br/> <p>Another thing you might notice in this code is that I purposely used the more verbose `#(get count-based-past-SLA-map %)` when I could have just used `count-based-past-SLA-map`, as it is already a function!  I prefer to err on the side of making my code as obvious as possible, so I try to avoid using data structures as functions except under a few special cases. But I guess that would be a different topic for a different blog.</p> </div></div>
+    <content type="html"><![CDATA[<p>I had written some complicated looking code at work recently (shhh, let&rsquo;s keep that between us ok?). Something about it didn&rsquo;t seem right to me, but I was busy at the time so I wrote a TODO to come back and find a way to make it simpler.</p>
 
+<p>Since the code is so confusing it is virtually impossible to read at a glance and understand its intent, I will explain what it does.  It takes in a map where the keys are numbers of days over a given SLA, and the values are the number of shipments that were over the SLA by that amount of days.  The map actually can and does have more keys on it than that, but for the purposes of this article we can ignore them.  The function takes that map and converts it to a version where the values are not counts of the individual SLA, but instead the current running percentage totals.</p>
+
+<h3>An example:</h3>
+
+<p><code>clojure
+(cumulative-percentage-past-SLA-map
+  {:past-SLA-1 2 :past-SLA-2 1 :past-SLA-3 3}
+  4
+  10)   
+;; =&gt; {:past-SLA-1 0.60 :past-SLA-2 0.70 :past-SLA-3 100.0}
+</code></p>
+
+<p>What makes this code end up so complicated is that it is complecting three things: generating the series of sums, dividing them, and creating a new map to return.</p>
+
+<p>``` clojure
+(def all-past-SLA-x-keys [:past-SLA-1 :past-SLA-2 :past-SLA-3])</p>
+
+<p>(defn- cumulative-percentage-past-SLA-map
+  &ldquo;Takes a count-based report and generates percents that accumulate.&rdquo;
+  [count-based-past-SLA-map met-SLA total-shipments]
+  (&ndash;> (reduce (fn [[past-SLA-map total-past-SLA-so-far] days-past-key]</p>
+
+<pre><code>            (let [updated-past-SLA-map 
+                   (update-in past-SLA-map
+                              [days-past-key]
+                              #(/ (+ total-past-SLA-so-far %) 
+                                  total-shipments))
+                  updated-total-past-SLA 
+                    (+ total-past-SLA-so-far 
+                       (get past-SLA-map days-past-key))]
+              [updated-past-SLA-map updated-total-past-SLA]))
+          [count-based-past-SLA-map met-SLA]
+          all-past-SLA-x-keys)
+  first))
+</code></pre>
+
+<p>```</p>
+
+<h2>The solution is to break those 3 parts up.</h2>
+
+<p>First we generate the series of sums using <a href="http://clojuredocs.org/clojure_core/clojure.core/reductions">reductions</a>.</p>
+
+<p>Second, we divide each by the total to convert them to percentages.</p>
+
+<p>Thirdly, we create a new map with percents as the values instead of counts.</p>
+
+<p>``` clojure
+(defn- cumulative-percentage-past-SLA-map
+  &ldquo;Takes a count-based report and generates percents that accumulate.&rdquo;
+  [count-based-past-SLA-map num-met-SLA total-shipments]
+  (let [counts (map #(get count-based-past-SLA-map %)</p>
+
+<pre><code>                all-past-SLA-x-keys)
+    running-totals (rest (reductions + num-met-SLA counts))
+    percents (map #(/ % total-shipments) running-totals)]
+(zipmap all-past-SLA-x-keys percents)))
+</code></pre>
+
+<p>```</p>
+
+<p>Another thing you might notice in this code is that I purposely used the more verbose <code>#(get count-based-past-SLA-map %)</code> when I could have just used <code>count-based-past-SLA-map</code>, as it is already a function!  I prefer to err on the side of making my code as obvious as possible, so I try to avoid using data structures as functions except under a few special cases. But I guess that would be a different topic for a different blog.</p>
+
+<h2>Comments</h2>
+
+
+<div class='comments'>
+<div class='comment'>
+<div class='author'>Alex Baranosky</div>
+<div class='content'>
+I would probably do it that way if I wrote it today, too, without the `get`.  But I don&#39;t think it is a huge deal either way.</div>
+</div>
+<div class='comment'>
+<div class='author'>Timothy Baldridge</div>
+<div class='content'>
++1 I&#39;d rather treat functions as maps, than introduce syntactic sugar with #() and %.</div>
+</div>
+<div class='comment'>
+<div class='author'>Alex Baranosky</div>
+<div class='content'>
+IMO this is an area where Clojure idioms venture into &quot;fancy&quot; territory.  It is a little Perlish.  At the end of the day it is a stylistic concern  and that kind of stuff is something that depends on what your team is most comfortable with. YMMV.</div>
+</div>
+<div class='comment'>
+<div class='author'>Unknown</div>
+<div class='content'>
+I don&#39;t agree with the last part... In clojure you just don&#39;t use get, it is more idiomatic the other way. Using get just make it more confusing IMHO</div>
+</div>
+</div>
+
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[Reducing Complexity]]></title>
+    <link href="http://AlexBaranosky.github.io/blog/2012/12/02/reducing-complexity/"/>
+    <updated>2012-12-02T02:33:00-08:00</updated>
+    <id>http://AlexBaranosky.github.io/blog/2012/12/02/reducing-complexity</id>
+    <content type="html"><![CDATA[<p>I had written some complicated looking code at work recently (shhh, let&rsquo;s keep that between us ok?). Something about it didn&rsquo;t seem right to me, but I was busy at the time so I wrote a TODO to come back and find a way to make it simpler.</p>
+
+<p>Since the code is so confusing it is virtually impossible to read at a glance and understand its intent, I will explain what it does.  It takes in a map where the keys are numbers of days over a given SLA, and the values are the number of shipments that were over the SLA by that amount of days.  The map actually can and does have more keys on it than that, but for the purposes of this article we can ignore them.  The function takes that map and converts it to a version where the values are not counts of the individual SLA, but instead the current running percentage totals.</p>
+
+<h3>An example:</h3>
+
+<p><code>clojure
+(cumulative-percentage-past-SLA-map {:past-SLA-1 2 :past-SLA-2 1 :past-SLA-3 3} 4 10)   
+;; =&gt; {:past-SLA-1 0.60 :past-SLA-2 0.70 :past-SLA-3 100.0}
+</code></p>
+
+<p>What makes this code end up so complicated is that it is complecting three things: generating the series of sums, dividing them, and creating a new map to return.</p>
+
+<p>``` clojure
+(def ^:private all-past-SLA-x-keys [:past-SLA-1 :past-SLA-2 :past-SLA-3])</p>
+
+<p>(defn- cumulative-percentage-past-SLA-map
+  &ldquo;Takes a count-based report and generates percentages that accumulate.&rdquo;
+  [count-based-past-SLA-map met-SLA total-shipments]
+  (&ndash;> (reduce (fn [[past-SLA-map total-past-SLA-so-far] days-past-key]</p>
+
+<pre><code>            (let [updated-past-SLA-map (update-in past-SLA-map
+                                                  [days-past-key]
+                                                  #(/ (+ total-past-SLA-so-far %) total-shipments))
+                  updated-total-past-SLA (+ total-past-SLA-so-far (get past-SLA-map days-past-key))]
+              [updated-past-SLA-map updated-total-past-SLA]))
+          [count-based-past-SLA-map met-SLA]
+          all-past-SLA-x-keys)
+  first))
+</code></pre>
+
+<p>```</p>
+
+<h2>The solution is to break those 3 parts up.</h2>
+
+<p>First we generate the series of sums using <a href="http://clojuredocs.org/clojure_core/clojure.core/reductions">reductions</a>.</p>
+
+<p>Second, we divide each by the total to convert them to percentages.</p>
+
+<p>Thirdly, we create a new map with percents as the values instead of counts.</p>
+
+<p>``` clojure
+(defn- cumulative-percentage-past-SLA-map
+  &ldquo;Takes a count-based report and generates percentages that accumulate.&rdquo;
+  [count-based-past-SLA-map num-met-SLA total-shipments]
+  (let [counts (map #(get count-based-past-SLA-map %) all-past-SLA-x-keys)</p>
+
+<pre><code>    running-totals (rest (reductions + num-met-SLA counts))
+    percents (map #(/ % total-shipments) running-totals)]
+(zipmap all-past-SLA-x-keys
+        percents)))
+</code></pre>
+
+<p>```</p>
+
+<p>Another thing you might notice in this code is that I purposely used the more verbose <code>#(get count-based-past-SLA-map %)</code> when I could have just used <code>count-based-past-SLA-map</code>, as it is already a function!  I prefer to err on the side of making my code as obvious as possible, so I try to avoid using data structures as functions except under a few special cases. But I guess that would be a different topic for a different blog.</p>
 
 <h2>Comments</h2>
 
@@ -641,160 +792,6 @@ when(mockC.call()).thenReturn(42);
 <div class='author'>Hema Powar</div>
 <div class='content'>
 Hey, saw your write ups. It is quite interesting. Please share your profile at hema.powar@wipro.com if you are looking for job. We have projects for a reputed client in Cupertino CA. Think you might have guessed the client already :-) <br /><br />Reach out to me at 201-272-6303</div>
-</div>
-</div>
-
-]]></content>
-  </entry>
-  
-  <entry>
-    <title type="html"><![CDATA[TDD in Midje in a Nutshell]]></title>
-    <link href="http://AlexBaranosky.github.io/blog/2012/02/19/tdd-in-midje-in-nutshell/"/>
-    <updated>2012-02-19T17:41:00-08:00</updated>
-    <id>http://AlexBaranosky.github.io/blog/2012/02/19/tdd-in-midje-in-nutshell</id>
-    <content type="html"><![CDATA[<p><a href="https://github.com/marick/Midje">Midje</a> is a Clojure testing library supporting a top-down mock function style of development, but also equally well supports a bottom-up style.</p>
-
-<p>This is an introductory article, and depending on the response, there will be more articles about some of the intermediate and advanced features.</p>
-
-<h2>Elegant Examples</h2>
-
-<p>Midje starts with a simple premise: that tests should be elegant and readable.</p>
-
-<p>When was the last time you saw code samples like this in somebody&rsquo;s blog, gist, or book?</p>
-
-<h3>EXAMPLE:</h3>
-
-<p><em>As you can see the foo function always returns: a-ham-sandwich</em></p>
-
-<p><code>clojure
-(foo :bar :baz)
-;; =&gt; :a-ham-sandwich
-</code></p>
-
-<p>As developers, I think we write examples like this, because it reads well to us. We&rsquo;re used to this sort of pseudo-code example style, and so we can all tell at a glance what&rsquo;s happening.</p>
-
-<p>This is where Midje enters. The below is executable Clojure Midje code:</p>
-
-<p><code>clojure
-(fact "the foo function always returns :a-ham-sandwich"  
-  (foo :bar :baz) =&gt; :a-ham-sandwich)
-</code>
-You can take that code, and run it, now, and if you&rsquo;ve defined foo, then you can run <code>lein midje</code> or use midje-mode in Emacs to confirm that foo does in fact always return <code>:a-ham-sandwich</code>. (Forget for now that this particular fact doesn&rsquo;t very well cover every possible input. Using a generated test input style of testing could be very useful here, but that is for another blog.)</p>
-
-<h2>Describing Code That Doesn&rsquo;t Exist &ndash; Yet</h2>
-
-<p>Let&rsquo;s try describing some code that doesn&rsquo;t yet exist with these kinds of examples.  I think if we jot down some example cases, it will help us think more clearly about what we&rsquo;re trying to get our code doing.</p>
-
-<p>``` clojure
-(fact &ldquo;doubles odd numbers&rdquo; <br/>
-  (my-func 3) => 6)</p>
-
-<p>(fact &ldquo;triples even numbers&rdquo; <br/>
-  (my-func 4) => 12)
-```</p>
-
-<p>We can run these examples now. First thing you&rsquo;ll notice is that we&rsquo;re getting errors; that&rsquo;s of course because we have not yet written any code. Let&rsquo;s add the my-func function.</p>
-
-<p><code>clojure
-(defn my-func [n] )
-</code></p>
-
-<p>Let&rsquo;s be cautious and just try to get one of these facts working first.</p>
-
-<p><code>clojure
-(defn my-func [n]
-  (* 2 n))
-</code></p>
-
-<p>This seems to work&hellip; but for only the first fact. (There&rsquo;s a lot to be said for how effectively TDD can help you to stay focused on the task at hand.)</p>
-
-<p>So let&rsquo;s get my-func to pass the second fact as well.</p>
-
-<p>``` clojure
-(defn my-func [n]
-  (if (odd? n)</p>
-
-<pre><code>(* 2 n)
-(* 3 n))
-</code></pre>
-
-<p>```</p>
-
-<p>Running those examples again with lein midje or midje mode, we see that they do indeed pass.</p>
-
-<p>But there&rsquo;s one more thing. There is a little bit of duplication left in my-func. Let&rsquo;s take a second, and refactor this a little.</p>
-
-<p>``` clojure
-(defn my-func [n]
-  (let [multiplier (if (odd? n) 2 3)]</p>
-
-<pre><code>(* multiplier n))
-</code></pre>
-
-<p>```</p>
-
-<p>Now that we&rsquo;ve revealed a new concept of a multiplier in our code, it looks like we are done.  Our code works as advertised.</p>
-
-<h2>TDD Recap</h2>
-
-<p>You just learned:</p>
-
-<ul>
-<li>how to use Midje facts as a form of executable examples</li>
-<li>how to do TDD. Nice.</li>
-</ul>
-
-
-<p>I was sneaky just then. Without letting you know what I was doing, I&rsquo;ve walked you through the 4 steps of TDD. Decide what you are testing, write a failing test, make that test pass, refactor the code to have a good design.</p>
-
-<h2>TDD Steps:</h2>
-
-<ol>
-<li>We chose a new piece of functionality we wanted the code to have.</li>
-<li>We wrote a failing test.  We ran it.  We saw it fail. In Midje, we like to think of this step as taking some time to describe the facts of the future version of the code.</li>
-<li>We wrote as little code as possible to make the test pass. In Midje, we think of this step as bringing the code up to date with the new facts.</li>
-<li>We took some time to reorganize the code &ndash; giving it better structure, removing duplication, adjusting the naming, etc. Repeat.</li>
-</ol>
-
-
-<p>That&rsquo;s TDD in Midje in a nutshell.</p>
-
-<p>What did you think? Interested in hearing some more intermediate or advanced TDD and Midje concepts and exercises?</p>
-
-<h2>Technicalities</h2>
-
-<p>``` clojure
-;; project.clj<br/>
-(defproject my-project &ldquo;0.1.0"<br/>
-  :dev-dependencies [[lein-midje "1.0.8&rdquo;]</p>
-
-<pre><code>                 [midje "1.4.0-SNAPSHOT"]])   
-</code></pre>
-
-<p>;; example with ns macro<br/>
-(ns my-ns.t-core <br/>
-  (:use my-ns.core</p>
-
-<pre><code>    midje.sweet))  
-</code></pre>
-
-<p>(fact <br/>
-  (foo :bar :baz) => :a-ham-sandwich)
-```</p>
-
-<h2>Comments</h2>
-
-
-<div class='comments'>
-<div class='comment'>
-<div class='author'>id</div>
-<div class='content'>
-Look closely at this screenshot (note: with noscript allowing all scripts except for the notorious google tracking bs) : http://bit.ly/IyQf46<br /><br />&quot;As developers, I think we write examples like this (...)&quot;<br /><br />As developers, *we* know that to mark up *code* you don&#39;t use a *script* tag.<br />a) as a noscript user, your reader won&#39;t know which of the dozen bs js sources to (temporarily) allow<br />b) even if you allow js, it won&#39;t work. &quot;Can&#39;t find brush for: clj&quot;<br />c) you can&#39;t just read it. No JS: no content? Fail!<br /><br />For a bit of potential syntax highlighting, you break your article. I applaud you, dear developer.</div>
-</div>
-<div class='comment'>
-<div class='author'>nodename.com</div>
-<div class='content'>
-Yes, keep it going!</div>
 </div>
 </div>
 
