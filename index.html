@@ -9,7 +9,8 @@
   <meta name="author" content="Alex Baranosky">
 
   
-  <meta name="description" content="I do not profess to be a master of Emacs Lisp. But after some time googling I figured out how I can mass code-format the code on some of our large &hellip;">
+  <meta name="description" content="
+">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -62,6 +63,44 @@
     <div id="content">
       <div class="blog-index">
   
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/2013/10/church-of-emacs.html">Church of Emacs</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2013-10-29T01:37:00-07:00" pubdate data-updated="true">Oct 29<span>th</span>, 2013</time>
+        
+         | <a href="/2013/10/church-of-emacs.html#disqus_thread">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p><img src="/images/saint-button.png" title="" ></p>
+</div>
+  
+  
+
+
+    </article>
   
   
     <article>
@@ -1472,106 +1511,6 @@ is some non-negative integer)</p>
 <p>Also, if this all is jiving with you, we&rsquo;ve got a <a href="http://groups.google.com/group/baznex">BAZNEX Google Group</a> we&rsquo;ve just started, where all future discussion of BAZNEX will transpire.</p>
 
 <p>Please tell anyone you think may be interested. The more the merrier. Any suggestions, offerings, additions, or displays of exuberance, also invited.</p>
-</div>
-  
-  
-
-
-    </article>
-  
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/2011/10/few-nice-features-of-clojure-part-1.html">A Few Nice Features of Clojure, Part #1: Using Macros to Freeze Time</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2011-10-23T18:25:00-07:00" pubdate data-updated="true">Oct 23<span>rd</span>, 2011</time>
-        
-         | <a href="/2011/10/few-nice-features-of-clojure-part-1.html#disqus_thread">Comments</a>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><p>I thought it might be fun to show some of Clojure&rsquo;s features off by taking a look at how I use some of them in my own project <a href="https://github.com/AlexBaranosky/EmailClojMatic">EmailClojMatic</a>. I&rsquo;ve got 4 features in mind and will show one feature each post.</p>
-
-<p><strong>Problem #1:</strong></p>
-
-<p>We want to unit test a function that depends on the current date.</p>
-
-<p><strong>Solution #1:</strong></p>
-
-<p>Fortunately we are using <a href="http://joda-time.sourceforge.net/">JodaTime</a>, a great Java date/time library. JodaTime has built in features for setting the &lsquo;now&rsquo; time. Let&rsquo;s use those to create a function to wrap our test code in, that will set the time at a given DateTime.</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-</pre></td><td class='code'><pre><code class='clojure'><span class='line'><span class="p">(</span><span class="kd">defn </span><span class="nv">do-at*</span> <span class="p">[</span><span class="nv">date-time</span> <span class="nv">f</span><span class="p">]</span>
-</span><span class='line'>  <span class="p">(</span><span class="nf">DateTimeUtils/setCurrentMillisFixed</span> <span class="p">(</span><span class="nf">.getMillis</span> <span class="nv">date-time</span><span class="p">))</span>
-</span><span class='line'>  <span class="p">(</span><span class="nf">try</span>
-</span><span class='line'>    <span class="p">(</span><span class="nf">f</span><span class="p">)</span>
-</span><span class='line'>    <span class="p">(</span><span class="nf">finally</span> <span class="p">(</span><span class="nf">DateTimeUtils/setCurrentMillisSystem</span><span class="p">))))</span>
-</span><span class='line'>
-</span><span class='line'><span class="c1">;; you might use this code like this:</span>
-</span><span class='line'>
-</span><span class='line'><span class="p">(</span><span class="nf">do-at*</span> <span class="p">(</span><span class="nf">DateMidnight.</span> <span class="mi">2000</span> <span class="mi">1</span> <span class="mi">1</span><span class="p">)</span>
-</span><span class='line'>  <span class="p">(</span><span class="k">fn </span><span class="p">[]</span> <span class="p">(</span><span class="nf">DateMidnight.</span><span class="p">)))</span> <span class="c1">;;=&gt; (DateMidnight. 2000 1 1)</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>If you are like me and you find yourself writing test code using this construct frequently you can use Clojure&rsquo;s macro functionality to essentially extend the Clojure language to have a new feature for evaluating an expression at a given DateTime. This way we won&rsquo;t have to always wrap the expression in a function like we are doing in the do-at* function.</p>
-
-<p>Let&rsquo;s see the macro version that I decided to call <code>do-at</code>, because it is just like the built in Clojure function <code>do</code> except it evaluates at the given time. [It&rsquo;s probably worth noting that xyz* function with xyz companion macro is a common Clojure idiom. &ndash;@darevay]</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-</pre></td><td class='code'><pre><code class='clojure'><span class='line'><span class="p">(</span><span class="kd">defmacro </span><span class="nv">do-at</span> <span class="p">[</span><span class="nv">date-time</span> <span class="o">&amp;</span> <span class="nv">body</span><span class="p">]</span>
-</span><span class='line'>  <span class="s">&quot;like clojure.core.do except evalautes the</span>
-</span><span class='line'><span class="s">  expression at the given time&quot;</span>
-</span><span class='line'>  <span class="o">`</span><span class="p">(</span><span class="nf">do-at*</span> <span class="o">~</span><span class="nv">date-time</span>
-</span><span class='line'>    <span class="p">(</span><span class="k">fn </span><span class="p">[]</span> <span class="o">~@</span><span class="nv">body</span><span class="p">)))</span>
-</span><span class='line'>
-</span><span class='line'><span class="c1">;; nice. Now we can see the actual code that was hiding</span>
-</span><span class='line'><span class="c1">;; behind all of those parens and fn creation:</span>
-</span><span class='line'>
-</span><span class='line'><span class="p">(</span><span class="nf">do-at</span> <span class="p">(</span><span class="nf">DateMidnight.</span> <span class="mi">2000</span> <span class="mi">1</span> <span class="mi">1</span><span class="p">)</span>
-</span><span class='line'>  <span class="p">(</span><span class="nf">DateMidnight.</span><span class="p">))</span> <span class="c1">;;=&gt; (DateMidnight. 2000 1 1)</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>It&rsquo;s pretty powerful the way that macros give you the ability to shape your library so that it is free of boiler plate.</p>
 </div>
   
   

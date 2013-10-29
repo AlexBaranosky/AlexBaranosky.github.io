@@ -4,7 +4,7 @@
   <title><![CDATA[Category: emacs | (elegant coding from a more civilized age)]]></title>
   <link href="http://AlexBaranosky.github.io/categories/emacs/atom.xml" rel="self"/>
   <link href="http://AlexBaranosky.github.io/"/>
-  <updated>2013-10-29T01:32:59-07:00</updated>
+  <updated>2013-10-29T01:40:30-07:00</updated>
   <id>http://AlexBaranosky.github.io/</id>
   <author>
     <name><![CDATA[Alex Baranosky]]></name>
@@ -12,6 +12,15 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+  
+  <entry>
+    <title type="html"><![CDATA[Church of Emacs]]></title>
+    <link href="http://AlexBaranosky.github.io/2013/10/church-of-emacs.html"/>
+    <updated>2013-10-29T01:37:00-07:00</updated>
+    <id>http://AlexBaranosky.github.io/2013/10/church-of-emacs</id>
+    <content type="html"><![CDATA[<p>{% img /images/saint-button.png  %}</p>
+]]></content>
+  </entry>
   
   <entry>
     <title type="html"><![CDATA[Mass Clojure File Formatting With Emacs Batch Mode]]></title>
