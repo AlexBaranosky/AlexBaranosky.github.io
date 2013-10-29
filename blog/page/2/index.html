@@ -9,10 +9,7 @@
   <meta name="author" content="Alex Baranosky">
 
   
-  <meta name="description" content="In Scala we’re quite familiar with the built in Monads: Option
-List
-Either Left Projection
-Either Right Projection There are other cool things you &hellip;">
+  <meta name="description" content="(This blog post is based on Rich Hickey&rsquo;s keynote speech at Strange Loop 2011) Word origins Could we go back to what these words REALLY mean? &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -65,6 +62,165 @@ Either Right Projection There are other cool things you &hellip;">
     <div id="content">
       <div class="blog-index">
   
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/2011/10/simplicity-is-prerequisuite-for.html">Simplicity Is a Prerequisuite for Reliability</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2011-10-13T09:04:00-07:00" pubdate data-updated="true">Oct 13<span>th</span>, 2011</time>
+        
+         | <a href="/2011/10/simplicity-is-prerequisuite-for.html#disqus_thread">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p><em>(This blog post is based on <a href="http://www.codequarterly.com/2011/rich-hickey/">Rich Hickey&rsquo;s</a> keynote speech at Strange Loop 2011)</em></p>
+
+<h2>Word origins</h2>
+
+<ul>
+<li>Could we go back to what these words REALLY mean?</li>
+<li>Simple: sim-plex &ndash; one fold/braid</li>
+<li>Complex: many folds/braids</li>
+<li>Easy: &hellip; lie near</li>
+</ul>
+
+
+<h2>Simple</h2>
+
+<ul>
+<li>One fold/braidOne roleOne task!One conceptOne dimension</li>
+<li>But not one instance one operation it&rsquo;s about lack of interleaving, it&rsquo;s not cardinality</li>
+<li><em>Interleavage is an Objective notion</em></li>
+</ul>
+
+
+<h2>Easy</h2>
+
+<ul>
+<li>Near, physically on our own hard drive, in our toolset, IDE, apt get, gem install.</li>
+<li>Near, to our current understand/skill set familiar &ndash; mentally near.</li>
+<li>We&rsquo;re generally overly fixated on these two meanings of easy.</li>
+<li>If you want everything to be familiar, you learn NOTHING.</li>
+<li>There&rsquo;s a third meaning of easy:</li>
+<li>Near, to our capabilities.</li>
+<li><em>Easy is RELATIVE &ndash; unlike simple</em></li>
+</ul>
+
+
+<h2>Limits</h2>
+
+<ul>
+<li>We can only hope to make reliable those things we understand.</li>
+<li>We can only consider a few things at a time.</li>
+<li>Intertwined things must be considered together. This is a mental burden and the intertwining tends to grow combinatorially.</li>
+<li>Complexity undermines understanding.</li>
+</ul>
+
+
+<h2>Simplicity Driven Development</h2>
+
+<ul>
+<li>If you ignore complexity &ndash; you will invariably sloooowwww down over time.</li>
+<li>If you focus on ease &ndash; you will have a fast at start, and slow down every iteration to redo everything.</li>
+<li>If you focus on simplicity &ndash; you will go a bit slower at the start, but then ramp up to a higher steady state of productivity.<strong> </strong></li>
+</ul>
+
+
+<h2>What is In Your Toolkit?</h2>
+
+<ul>
+<li>Complex</li>
+<li>Simple</li>
+<li>state, objects, values, methods, functions, namespaces, vars, managed refs,
+inheritence, switch, matching polymorphism, syntax data, imperative loops, fold
+set functions, actors queues, ORM declarative data manipulation, conditionals,
+rules, inconsistency consistency</li>
+</ul>
+
+
+<h2>Complect</h2>
+
+<p>archaic word meaning &ldquo;to braid together&rdquo;
+don&rsquo;t do it
+complecting things is a source complexity
+best to avoid in the first place</p>
+
+<h2>Compose</h2>
+
+<ul>
+<li>meaning &ldquo;to place together&rdquo;</li>
+<li>composing simple components is the way we write robust software!</li>
+<li>We can make simple systems by making them modular.</li>
+<li>What do we want to make these two parts of code allowed to think about??</li>
+<li>In other words, program towards abstractions!</li>
+<li>Don&rsquo;t be fooled by code organization. Two things can be physically separate, but to change one means you need to change the other &ndash; they are complected</li>
+</ul>
+
+
+<h2>State is Never Simple</h2>
+
+<ul>
+<li>It complects value and time</li>
+<li>But it is so EASY!</li>
+<li>It interleaves everything that touches it, directly or indirectly.</li>
+</ul>
+
+
+<h2>Programming Features That Complect</h2>
+
+<p><strong>Feature Complects</strong></p>
+
+<p>State everything they touch</p>
+
+<p>Objects state, identity, value</p>
+
+<p>Methods function and state, namespaces</p>
+
+<p>Syntax meaning, order</p>
+
+<p>Inheritance  types
+switching/matching multiple who what pairsvariables  value, timeloop, fold     what/howactors    what to do, who does itORM OMG
+<em>Simplicity is NOT the same as Easy &ndash; Remember that &ndash; It is KEY</em><strong>
+</strong><strong>The Simplicity Recipe</strong></p>
+
+<p>You do not need C#/Java/C++. You can make big systems with dramatically simpler tools.</p>
+
+<p>We make hundreds of variations that make it tough to manipulate the essence of this stuff &ndash; data. We should use simple data so we can write code to work on the essence of this stuff.
+Develop sensibilities around entanglement &ndash; learn to see the complecting.</p>
+
+<p>Tools for reliability like testing, refactoring, etc are all safety nets that are orthogonal to this problem.</p>
+
+<p>Choose simple constructs over constructs that encourage braided together code.</p>
+
+<p>Simplify the problem space before you start.
+Simplicity often mean you have more things&hellip; it&rsquo;s not about counting.
+Reap the benefits!</p>
+</div>
+  
+  
+
+
+    </article>
   
   
     <article>

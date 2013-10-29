@@ -9,7 +9,7 @@
   <meta name="author" content="Alex Baranosky">
 
   
-  <meta name="description" content="Theeee other day some colleagues and I drove into downtown San Mateo for lunch. An interesting decision had to be made: how many quarters to pay the &hellip;">
+  <meta name="description" content="I do not profess to be a master of Emacs Lisp. But after some time googling I figured out how I can mass code-format the code on some of our large &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -62,6 +62,81 @@
     <div id="content">
       <div class="blog-index">
   
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/2013/10/mass-clojure-file-formatting-with-emacs-batch-mode.html">Mass Clojure File Formatting With Emacs Batch Mode</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2013-10-29T00:51:00-07:00" pubdate data-updated="true">Oct 29<span>th</span>, 2013</time>
+        
+         | <a href="/2013/10/mass-clojure-file-formatting-with-emacs-batch-mode.html#disqus_thread">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>I do not profess to be a master of Emacs Lisp.  But after some time googling I figured out how I can mass code-format the code on some of our large projects at work.</p>
+
+<p>It is pretty likely that you may need to tweak this to get it to work on your machine. Specifically, you&rsquo;ll have to point the script to the correct location of you clojure-mode installation.</p>
+
+<p>This script calls <code>emacs</code> in <a href="http://www.emacswiki.org/emacs/BatchMode">Emacs in &mdash;batch mode</a>, which causes Emacs to run non-interacively.  We can use <code>--batch</code> to allow us to write scripts using Emacs.  Awesome, I know. :)</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="c">#!/bin/sh</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">for </span>file in <span class="sb">`</span>find /path/to/your/project/.<span class="sb">`</span>
+</span><span class='line'><span class="k">do</span>
+</span><span class='line'><span class="k">    if</span> <span class="o">[[</span> <span class="nv">$file</span> <span class="o">=</span>~ ^.*<span class="se">\.</span>clj<span class="nv">$ </span><span class="o">]]</span>; <span class="k">then</span>
+</span><span class='line'><span class="k">        </span>emacs <span class="s2">&quot;$file&quot;</span> <span class="se">\</span>
+</span><span class='line'>              --batch <span class="se">\</span>
+</span><span class='line'>              --eval<span class="o">=</span><span class="s2">&quot;(progn </span>
+</span><span class='line'><span class="s2">                        (load \&quot;~/.emacs.d/elpa/clojure-mode-2.0.0/clojure-mode\&quot;)</span>
+</span><span class='line'><span class="s2">                        (require &#39;clojure-mode) </span>
+</span><span class='line'><span class="s2">                        (clojure-mode) </span>
+</span><span class='line'><span class="s2">                        (indent-region (point-min) (point-max)) </span>
+</span><span class='line'><span class="s2">                        (save-buffer))&quot;</span>
+</span><span class='line'>    <span class="k">fi</span>
+</span><span class='line'><span class="k">done</span>
+</span></code></pre></td></tr></table></div></figure>
+
+</div>
+  
+  
+
+
+    </article>
   
   
     <article>
@@ -1497,165 +1572,6 @@ is some non-negative integer)</p>
 
 
 <p>It&rsquo;s pretty powerful the way that macros give you the ability to shape your library so that it is free of boiler plate.</p>
-</div>
-  
-  
-
-
-    </article>
-  
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/2011/10/simplicity-is-prerequisuite-for.html">Simplicity Is a Prerequisuite for Reliability</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2011-10-13T09:04:00-07:00" pubdate data-updated="true">Oct 13<span>th</span>, 2011</time>
-        
-         | <a href="/2011/10/simplicity-is-prerequisuite-for.html#disqus_thread">Comments</a>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><p><em>(This blog post is based on <a href="http://www.codequarterly.com/2011/rich-hickey/">Rich Hickey&rsquo;s</a> keynote speech at Strange Loop 2011)</em></p>
-
-<h2>Word origins</h2>
-
-<ul>
-<li>Could we go back to what these words REALLY mean?</li>
-<li>Simple: sim-plex &ndash; one fold/braid</li>
-<li>Complex: many folds/braids</li>
-<li>Easy: &hellip; lie near</li>
-</ul>
-
-
-<h2>Simple</h2>
-
-<ul>
-<li>One fold/braidOne roleOne task!One conceptOne dimension</li>
-<li>But not one instance one operation it&rsquo;s about lack of interleaving, it&rsquo;s not cardinality</li>
-<li><em>Interleavage is an Objective notion</em></li>
-</ul>
-
-
-<h2>Easy</h2>
-
-<ul>
-<li>Near, physically on our own hard drive, in our toolset, IDE, apt get, gem install.</li>
-<li>Near, to our current understand/skill set familiar &ndash; mentally near.</li>
-<li>We&rsquo;re generally overly fixated on these two meanings of easy.</li>
-<li>If you want everything to be familiar, you learn NOTHING.</li>
-<li>There&rsquo;s a third meaning of easy:</li>
-<li>Near, to our capabilities.</li>
-<li><em>Easy is RELATIVE &ndash; unlike simple</em></li>
-</ul>
-
-
-<h2>Limits</h2>
-
-<ul>
-<li>We can only hope to make reliable those things we understand.</li>
-<li>We can only consider a few things at a time.</li>
-<li>Intertwined things must be considered together. This is a mental burden and the intertwining tends to grow combinatorially.</li>
-<li>Complexity undermines understanding.</li>
-</ul>
-
-
-<h2>Simplicity Driven Development</h2>
-
-<ul>
-<li>If you ignore complexity &ndash; you will invariably sloooowwww down over time.</li>
-<li>If you focus on ease &ndash; you will have a fast at start, and slow down every iteration to redo everything.</li>
-<li>If you focus on simplicity &ndash; you will go a bit slower at the start, but then ramp up to a higher steady state of productivity.<strong> </strong></li>
-</ul>
-
-
-<h2>What is In Your Toolkit?</h2>
-
-<ul>
-<li>Complex</li>
-<li>Simple</li>
-<li>state, objects, values, methods, functions, namespaces, vars, managed refs,
-inheritence, switch, matching polymorphism, syntax data, imperative loops, fold
-set functions, actors queues, ORM declarative data manipulation, conditionals,
-rules, inconsistency consistency</li>
-</ul>
-
-
-<h2>Complect</h2>
-
-<p>archaic word meaning &ldquo;to braid together&rdquo;
-don&rsquo;t do it
-complecting things is a source complexity
-best to avoid in the first place</p>
-
-<h2>Compose</h2>
-
-<ul>
-<li>meaning &ldquo;to place together&rdquo;</li>
-<li>composing simple components is the way we write robust software!</li>
-<li>We can make simple systems by making them modular.</li>
-<li>What do we want to make these two parts of code allowed to think about??</li>
-<li>In other words, program towards abstractions!</li>
-<li>Don&rsquo;t be fooled by code organization. Two things can be physically separate, but to change one means you need to change the other &ndash; they are complected</li>
-</ul>
-
-
-<h2>State is Never Simple</h2>
-
-<ul>
-<li>It complects value and time</li>
-<li>But it is so EASY!</li>
-<li>It interleaves everything that touches it, directly or indirectly.</li>
-</ul>
-
-
-<h2>Programming Features That Complect</h2>
-
-<p><strong>Feature Complects</strong></p>
-
-<p>State everything they touch</p>
-
-<p>Objects state, identity, value</p>
-
-<p>Methods function and state, namespaces</p>
-
-<p>Syntax meaning, order</p>
-
-<p>Inheritance  types
-switching/matching multiple who what pairsvariables  value, timeloop, fold     what/howactors    what to do, who does itORM OMG
-<em>Simplicity is NOT the same as Easy &ndash; Remember that &ndash; It is KEY</em><strong>
-</strong><strong>The Simplicity Recipe</strong></p>
-
-<p>You do not need C#/Java/C++. You can make big systems with dramatically simpler tools.</p>
-
-<p>We make hundreds of variations that make it tough to manipulate the essence of this stuff &ndash; data. We should use simple data so we can write code to work on the essence of this stuff.
-Develop sensibilities around entanglement &ndash; learn to see the complecting.</p>
-
-<p>Tools for reliability like testing, refactoring, etc are all safety nets that are orthogonal to this problem.</p>
-
-<p>Choose simple constructs over constructs that encourage braided together code.</p>
-
-<p>Simplify the problem space before you start.
-Simplicity often mean you have more things&hellip; it&rsquo;s not about counting.
-Reap the benefits!</p>
 </div>
   
   

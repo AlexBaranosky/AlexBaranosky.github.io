@@ -4,7 +4,7 @@
   <title><![CDATA[(elegant coding from a more civilized age)]]></title>
   <link href="http://AlexBaranosky.github.io/atom.xml" rel="self"/>
   <link href="http://AlexBaranosky.github.io/"/>
-  <updated>2013-10-28T22:32:21-07:00</updated>
+  <updated>2013-10-29T01:32:59-07:00</updated>
   <id>http://AlexBaranosky.github.io/</id>
   <author>
     <name><![CDATA[Alex Baranosky]]></name>
@@ -12,6 +12,52 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+  
+  <entry>
+    <title type="html"><![CDATA[Mass Clojure File Formatting With Emacs Batch Mode]]></title>
+    <link href="http://AlexBaranosky.github.io/2013/10/mass-clojure-file-formatting-with-emacs-batch-mode.html"/>
+    <updated>2013-10-29T00:51:00-07:00</updated>
+    <id>http://AlexBaranosky.github.io/2013/10/mass-clojure-file-formatting-with-emacs-batch-mode</id>
+    <content type="html"><![CDATA[<p>I do not profess to be a master of Emacs Lisp.  But after some time googling I figured out how I can mass code-format the code on some of our large projects at work.</p>
+
+<p>It is pretty likely that you may need to tweak this to get it to work on your machine. Specifically, you&rsquo;ll have to point the script to the correct location of you clojure-mode installation.</p>
+
+<p>This script calls <code>emacs</code> in <a href="http://www.emacswiki.org/emacs/BatchMode">Emacs in &mdash;batch mode</a>, which causes Emacs to run non-interacively.  We can use <code>--batch</code> to allow us to write scripts using Emacs.  Awesome, I know. :)</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="c">#!/bin/sh</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">for </span>file in <span class="sb">`</span>find /path/to/your/project/.<span class="sb">`</span>
+</span><span class='line'><span class="k">do</span>
+</span><span class='line'><span class="k">    if</span> <span class="o">[[</span> <span class="nv">$file</span> <span class="o">=</span>~ ^.*<span class="se">\.</span>clj<span class="nv">$ </span><span class="o">]]</span>; <span class="k">then</span>
+</span><span class='line'><span class="k">        </span>emacs <span class="s2">&quot;$file&quot;</span> <span class="se">\</span>
+</span><span class='line'>              --batch <span class="se">\</span>
+</span><span class='line'>              --eval<span class="o">=</span><span class="s2">&quot;(progn </span>
+</span><span class='line'><span class="s2">                        (load \&quot;~/.emacs.d/elpa/clojure-mode-2.0.0/clojure-mode\&quot;)</span>
+</span><span class='line'><span class="s2">                        (require &#39;clojure-mode) </span>
+</span><span class='line'><span class="s2">                        (clojure-mode) </span>
+</span><span class='line'><span class="s2">                        (indent-region (point-min) (point-max)) </span>
+</span><span class='line'><span class="s2">                        (save-buffer))&quot;</span>
+</span><span class='line'>    <span class="k">fi</span>
+</span><span class='line'><span class="k">done</span>
+</span></code></pre></td></tr></table></div></figure>
+
+]]></content>
+  </entry>
   
   <entry>
     <title type="html"><![CDATA[A Mathematical Jaunt Via San Mateo Parking Meters]]></title>
