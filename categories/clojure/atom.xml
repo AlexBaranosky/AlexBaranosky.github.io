@@ -1,0 +1,766 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+
+  <title><![CDATA[Category: clojure | (elegant coding from a more civilized age)]]></title>
+  <link href="http://AlexBaranosky.github.io/categories/clojure/atom.xml" rel="self"/>
+  <link href="http://AlexBaranosky.github.io/"/>
+  <updated>2013-10-28T22:32:21-07:00</updated>
+  <id>http://AlexBaranosky.github.io/</id>
+  <author>
+    <name><![CDATA[Alex Baranosky]]></name>
+    
+  </author>
+  <generator uri="http://octopress.org/">Octopress</generator>
+
+  
+  <entry>
+    <title type="html"><![CDATA[IO as Data]]></title>
+    <link href="http://AlexBaranosky.github.io/2013/08/io-as-data.html"/>
+    <updated>2013-08-08T23:51:00-07:00</updated>
+    <id>http://AlexBaranosky.github.io/2013/08/io-as-data</id>
+    <content type="html"><![CDATA[<p>One way to make your Clojure code easier to test and to reason about is to quarantine your IO.  Amongst your team decide where you think the acceptable boundaries for IO are, and then don&rsquo;t do any IO except in those layers.  In my opinion the place to do IO is in the service layer, as described in Amit Rathore&rsquo;s talk at Clojure/West, <a href="http://www.infoq.com/presentations/DDD-Clojure">Domain-Driven Design With Clojure</a>.</p>
+
+<p>What this can lead to is code patterned where instead of executing IO straight away, you instead compute IO IOUs: a pure function determines that some piece of IO should occur, and returns that fact encoded in some form of data.</p>
+
+<h2>A Basic Example</h2>
+
+<p>Say we have a map that tracks the inventory changes at a warehouse.  It typically looks like this:</p>
+
+<p>``` clojure
+(def an-example-inventory
+  {:items {12345</p>
+
+<pre><code>       {:product-id 12345
+        :product-name ""
+        :quantity 300
+        ;; ...
+        }}
+</code></pre>
+
+<p>   :actions {:order-from-factory []}}) ;; this is where the IO data goes</p>
+
+<p>(defn remove-item-from-inventory
+  [inventory {:keys [product-id] :as item}]
+  (if (some-> inventory :items product-id :quantity count (> 0))</p>
+
+<pre><code>(update-in inventory [:items product-id :quantity] dec)
+(update-in inventory [:actions :order-from-factory] conj product-id)))
+</code></pre>
+
+<p>```</p>
+
+<p>Then at a later stage of processing this code, at an outer layer that deals with IO, we can look over the actions on the inventory map and processes them accordingly.</p>
+
+<h2>Ramifications of This Style</h2>
+
+<p>A cool side effect of this is that if you want to change how your IO gets evaluated it will all be in a handful of well-defined places.  This makes switching out implementation details easier.  Also, it makes converting to asynchronous IO more straightforward if the IO becomes a blocker to the performance of the system.</p>
+
+<p>Your code becomes less coupled to implementation details of your IO, and instead talks more about the computed intended effects. Unit testability of the system goes up, because everything except the service layer, is just pure functions and data.</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[The Evolution of a Macro]]></title>
+    <link href="http://AlexBaranosky.github.io/2013/07/the-evolution-of-macro.html"/>
+    <updated>2013-07-28T02:59:00-07:00</updated>
+    <id>http://AlexBaranosky.github.io/2013/07/the-evolution-of-macro</id>
+    <content type="html"><![CDATA[<p>At Runa, where I work, I work on a very large Clojure application which we service online merchants with in order to deliver real-time promotions to the browser. The runtime promotion determination core of the application is quite intricate and has both stateful and immutable parts. If not tested properly, you can make the mistake of letting any setup mutable state effect tests other than the intended test case.</p>
+
+<p>I thought it&rsquo;d be fun to walk you through how I developed a macro to handle this type of situation at work. I think it is a pretty interesting example of how macros can evolve and what considerations might go into how you architect a meaty macro.</p>
+
+<p><em>NOTE: The code has been simplified from the production code to better emphasize the important points.</em></p>
+
+<h2>First Stab At a Stateful Test Macro</h2>
+
+<p>Our first stab at this problem solves the basic initial version of the problem. Often this would be all you need to get the job done. This approach enables us to evaluate our test assertion from within a stateful scope, and we use the finally block of the try-catch to ensure that the rules are always set back to their original state when the test is done.</p>
+
+<p><code>`` clojure
+(defmacro with-rules [rules &amp; body]
+ </code>(let [old-rules# @rules]</p>
+
+<pre><code> (try
+   (reset! rules (evaluate-rules ~rules))
+   ~@body
+   (finally
+     (reset! rules old-rules#)))))
+</code></pre>
+
+<p>(deftest test-priority-level
+ (with-rules (def-rule priority-level 5)
+  (is (= true (priority-level 5)))))
+```</p>
+
+<p>Then if we have some other sort of state, for example machine learning models, we can write another <code>with-models</code> macro and combine the macros in a test.</p>
+
+<p><code>`` clojure
+(defmacro with-models [models &amp; body]
+</code>(let [old-models# @models]
+  (try
+   (reset! models ~models)
+   ~@body
+   (finally</p>
+
+<pre><code>(reset! models old-models#)))))
+</code></pre>
+
+<p>(deftest test-model-and-level
+ (with-rules (def-rule priority-level 5)
+  (with-models {:a [1 2 3 4 5 6]</p>
+
+<pre><code>            :b [7 8 9 10 11 12]} ;; insert fancy math stuff here ;)
+</code></pre>
+
+<p>   (is (= true (found-promotion? (legal-customer-session)))))))
+```</p>
+
+<p>Before I make a serious change to the approach we use for this kind of macro, let&rsquo;s remove the bloat from these macros and make them lean mean macros with beefier functions to go with them.</p>
+
+<p>``` clojure
+(defn with-rules* [rules body-fn]
+ (let [old-rules @rules]
+  (try
+   (reset! rules (evaluate-rules rules))
+   (body-fn)
+   (finally</p>
+
+<pre><code>(reset! rules old-rules)))))
+</code></pre>
+
+<p>(defmacro with-rules [rules &amp; body]
+ `(with-rules* ~rules (fn [] ~@body)))</p>
+
+<p>(defn with-models* [models body-fn]
+ (let [old-models @models]
+  (try
+   (reset! models models)
+   (body-fn)
+   (finally</p>
+
+<pre><code>(reset! models old-models)))))
+</code></pre>
+
+<p>(defmacro with-models [models &amp; body]
+ `(with-models* ~models (fn [] ~@body)))
+```</p>
+
+<p>Why? Because macros are harder to read, and not composable.</p>
+
+<p>This way of approaching the stateful setup and teardown in our tests gets the
+job done, but has a couple issues. As soon as we have another source of state we
+need another with-x macro, and when we combine these together we end up over
+time with code that looks like this.</p>
+
+<p>``` clojure
+(deftest test-motherload
+ (with-x X
+  (with-y Y
+   (with-z Z</p>
+
+<pre><code>(with-a A
+ (with-b B
+   (is (= 42 (evaluate)))))))))
+</code></pre>
+
+<p>```</p>
+
+<p>What I really want here is one macro not 5! I&rsquo;d like something I can easily extend as new forms of state come up.</p>
+
+<h2>Composing Functions For A More Extensible Approach</h2>
+
+<p>What if we could write test-motherload like this:</p>
+
+<p><code>clojure
+(deftest test-motherload
+ (with-runtime-state {:x X :y Y :z Z :a A :b B}
+  (is (= 42 (evaluate)))))
+</code></p>
+
+<p>And ideally if a C type of state comes up down the line, it&rsquo;ll be straightforward to extend this macro to accomodate it without pulling your hair out dealing with #&rsquo;s, ~&rsquo;s, @&rsquo;s, &lsquo;&rsquo;s and `&rsquo;s.</p>
+
+<p>With a minor change to with-rules<em> and with-models</em> we can enable them to be used to compose 0-arity functions into other 0-arity functions.</p>
+
+<p>```clojure
+(defn rules-setup-and-teardown [rules body-fn]
+ (fn []
+  (let [old-rules @rules]
+   (try</p>
+
+<pre><code>(reset! rules (evaluate-rules rules))
+(body-fn)
+(finally
+ (reset! rules old-rules))))))
+</code></pre>
+
+<p>(defn models-setup-and-teardown [models body-fn]
+ (fn []
+  (let [old-models @models]
+   (try</p>
+
+<pre><code>(reset! models models)
+(body-fn)
+(finally
+  (reset! models old-models)))))
+</code></pre>
+
+<p>```</p>
+
+<p>We can take the testcase evaluation function and transform it into a function that when called will wrap the evaluate-test-case function in setup and teardown of the rules state.</p>
+
+<p><code>clojure
+(rules-setup-and-teardown
+  '(def-rule priority-level 5)
+  (fn [] (evalute-test-case)))
+</code></p>
+
+<p>And we can chain these function compositions together, to incorporate more varieties of setup and teardown as necessary. Note we don&rsquo;t need no fancy macros for this (yet).</p>
+
+<p>``` clojure
+(deftest test-model-and-level
+ (let [testcase-fn (fn []</p>
+
+<pre><code>                 (is (= true (found-promotion? 
+                               (legal-customer-session)))))
+   wrapped-testcase-fn 
+     (-&gt;&gt; testcase-fn
+          (rules-setup-and-teardown '(def-rule priority-level 5))
+          (models-setup-and-teardown {:a [1 2 3 4 5 6]
+                                      :b [7 8 9 10 11 12]}))]
+</code></pre>
+
+<p>   (wrapped-testcase-fn)))
+```</p>
+
+<p>Remember what we&rsquo;re aiming for is something more like this:</p>
+
+<p><code>clojure
+(deftest test-motherload
+ (with-runtime-state {:x X :y Y :z Z :a A :b B}
+   (is (= 42 (evaluate)))))
+</code></p>
+
+<p>This is going to require us to convert the state map, {:x X :y Y :z Z :a A :b B}, into the appropriate setup-and-teardown wrapper functions, and do the wrapping of the body of the macro as well.</p>
+
+<p>The first definition option->setup-and-teardown-fn, maps keys from the state map to its corresponding setup-and-teardown function.</p>
+
+<p><code>clojure
+(def ^:private option-&gt;setup-and-teardown-fn
+ "Add new setup and teardown wrappers here, and the `with-runtime-state`
+  macro automatically gets a new functionality"
+ {:rules #'rules-setup-and-teardown
+  :models #'models-setup-and-teardown})
+</code></p>
+
+<p>Finally the macro that makes it all fit together. If you look closely, it macro
+expands into something very similar to the composed function solution above.</p>
+
+<p>``` clojure
+(defmacro with-runtime-state [options &amp; body]
+ (let [setup-and-teardowns</p>
+
+<pre><code>;; 1. map each key of the state-map to its a setup-and-teardown fn
+(for [[k state-value] options]
+ `((fn [f#]
+   (let [setup-and-teardown# (get ~option-&gt;setup-and-teardown-fn ~k)]
+    (setup-and-teardown# ~state-value f#)))))]
+</code></pre>
+
+<p>  ;; 2. thread the testcase body fn through each wrapper fn, and eval it
+  `((&ndash;> (fn [] ~@body)</p>
+
+<pre><code> ~@setup-and-teardowns))))
+</code></pre>
+
+<p>```</p>
+
+<p>We can make the macro more user friendly with a couple of asserts on the args passed to it. These kinds of assertions are especially nice in macros, because they help make the macro&rsquo;s unique syntax easier to use for your teammates without them pulling their hair out.</p>
+
+<p>Also, we can be improve it one step further. We&rsquo;ll use clojure.core/partial to create the 1-arity setup-and-teardown functions, rather than wrapping each of them within the for expression.</p>
+
+<p>``` clojure
+(def ^:private runtime-test-option-set (set (keys option->setup-and-teardown-fn)))</p>
+
+<p>(defmacro with-runtime-state [options &amp; body]
+ (assert (map? options)</p>
+
+<pre><code> "Options should be a map.")
+</code></pre>
+
+<p> (assert (every? runtime-test-option-set (keys options))</p>
+
+<pre><code> "Options should have :rules and/or :feature-bits keys")
+</code></pre>
+
+<p> (let [setup-and-teardowns</p>
+
+<pre><code>(for [[k state-value] options]
+ `((partial (get ~option-&gt;setup-and-teardown-fn ~k) ~state-value)))]
+</code></pre>
+
+<p>  `((&ndash;> (fn [] ~@body)</p>
+
+<pre><code> ~@setup-and-teardowns))))
+</code></pre>
+
+<p>```</p>
+
+<h2>Refactoring Addendum</h2>
+
+<p>I thought a little more about this and realized that even this macro is doing
+too much.  We can actually extract the code that wraps a 0-arity function f in
+setup-and-teardown functions. In the process we end up with a macro with one
+line of code that does the heavy lifting and a few more lines of asserts.</p>
+
+<p>``` clojure
+(defn wrap-in-setups-and-tear-downs [options f]
+  (let [setup-and-teardown-fns (for [[k state-value] options]</p>
+
+<pre><code>                             (partial (get option-&gt;setup-and-teardown-fn k) 
+                                      state-value))]
+(reduce (fn [f' setup-and-teardown-fn]
+          (setup-and-teardown-fn f'))
+        f
+        setup-and-teardown-fns)))
+</code></pre>
+
+<p>(defmacro with-runtime-state [options &amp; body]
+  (assert (map? options)</p>
+
+<pre><code>      "Options should be a map.")
+</code></pre>
+
+<p>  (assert (every? runtime-test-option-set (keys options))</p>
+
+<pre><code>      "Options should have :rules and/or :feature-bits keys")
+</code></pre>
+
+<p>  `((wrap-in-setups-and-tear-downs ~options (fn [] ~@body))))
+```</p>
+
+<p>This is a useful step because now we have another higher order function with which to build useful state-management tooling, and we&rsquo;ve eliminated more of the potentially confusing macro code.</p>
+
+<h2>Takeaways</h2>
+
+<h3>So why go to all this trouble?</h3>
+
+<ul>
+<li>We&rsquo;ve written a macro that is extensible.</li>
+<li>We&rsquo;ve minimized actual lines of macro code. Yay!</li>
+<li>We get validation of the state-map keys for free, anytime we extend this with a new setup-and-teardown function.</li>
+<li>Our tests have a clean, uniform, minimal DSL for expressing pre-requisite mutable state.</li>
+</ul>
+
+
+<h3>How did we do it?</h3>
+
+<ul>
+<li>We took an essentially functional compositional approach.</li>
+<li>We wrapped it in a layer of syntactic sugar.</li>
+</ul>
+
+
+<p>Hope you enjoyed this little code walk through.</p>
+
+<p>Comments or questions?</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[Reducing Complexity]]></title>
+    <link href="http://AlexBaranosky.github.io/2012/12/reducing-complexity.html"/>
+    <updated>2012-12-02T02:33:00-08:00</updated>
+    <id>http://AlexBaranosky.github.io/2012/12/reducing-complexity</id>
+    <content type="html"><![CDATA[<p>I had written some complicated looking code at work recently (shhh, let&rsquo;s keep that between us ok?). Something about it didn&rsquo;t seem right to me, but I was busy at the time so I wrote a TODO to come back and find a way to make it simpler.</p>
+
+<p>Since the code is so confusing it is virtually impossible to read at a glance and understand its intent, I will explain what it does.  It takes in a map where the keys are numbers of days over a given SLA, and the values are the number of shipments that were over the SLA by that amount of days.  The map actually can and does have more keys on it than that, but for the purposes of this article we can ignore them.  The function takes that map and converts it to a version where the values are not counts of the individual SLA, but instead the current running percentage totals.</p>
+
+<h3>An example:</h3>
+
+<p><code>clojure
+(cumulative-percentage-past-SLA-map
+  {:past-SLA-1 2 :past-SLA-2 1 :past-SLA-3 3}
+  4
+  10)   
+;; =&gt; {:past-SLA-1 0.60 :past-SLA-2 0.70 :past-SLA-3 100.0}
+</code></p>
+
+<p>What makes this code end up so complicated is that it is complecting three things: generating the series of sums, dividing them, and creating a new map to return.</p>
+
+<p>``` clojure
+(def all-past-SLA-x-keys [:past-SLA-1 :past-SLA-2 :past-SLA-3])</p>
+
+<p>(defn- cumulative-percentage-past-SLA-map
+  &ldquo;Takes a count-based report and generates percents that accumulate.&rdquo;
+  [count-based-past-SLA-map met-SLA total-shipments]
+  (&ndash;> (reduce (fn [[past-SLA-map total-past-SLA-so-far] days-past-key]</p>
+
+<pre><code>            (let [updated-past-SLA-map 
+                   (update-in past-SLA-map
+                              [days-past-key]
+                              #(/ (+ total-past-SLA-so-far %) 
+                                  total-shipments))
+                  updated-total-past-SLA 
+                    (+ total-past-SLA-so-far 
+                       (get past-SLA-map days-past-key))]
+              [updated-past-SLA-map updated-total-past-SLA]))
+          [count-based-past-SLA-map met-SLA]
+          all-past-SLA-x-keys)
+  first))
+</code></pre>
+
+<p>```</p>
+
+<h2>The solution is to break those 3 parts up.</h2>
+
+<p>First we generate the series of sums using <a href="http://clojuredocs.org/clojure_core/clojure.core/reductions">reductions</a>.</p>
+
+<p>Second, we divide each by the total to convert them to percentages.</p>
+
+<p>Thirdly, we create a new map with percents as the values instead of counts.</p>
+
+<p>``` clojure
+(defn- cumulative-percentage-past-SLA-map
+  &ldquo;Takes a count-based report and generates percentages that accumulate.&rdquo;
+  [count-based-past-SLA-map num-met-SLA total-shipments]
+  (let [counts (map #(get count-based-past-SLA-map %) all-past-SLA-x-keys)</p>
+
+<pre><code>    running-totals (rest (reductions + num-met-SLA counts))
+    percents (map #(/ % total-shipments) running-totals)]
+(zipmap all-past-SLA-x-keys
+        percents)))
+</code></pre>
+
+<p>```</p>
+
+<p>Another thing you might notice in this code is that I purposely used the more verbose <code>#(get count-based-past-SLA-map %)</code> when I could have just used <code>count-based-past-SLA-map</code>, as it is already a function!  I prefer to err on the side of making my code as obvious as possible, so I try to avoid using data structures as functions except under a few special cases. But I guess that would be a different topic for a different blog.</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[The Many Faces of Midje Fakes]]></title>
+    <link href="http://AlexBaranosky.github.io/2012/02/many-faces-of-midje-fakes.html"/>
+    <updated>2012-02-27T19:21:00-08:00</updated>
+    <id>http://AlexBaranosky.github.io/2012/02/many-faces-of-midje-fakes</id>
+    <content type="html"><![CDATA[<p>The <a href="https://github.com/marick/Midje">Midje</a> Clojure testing library enables top-down development, and the primary tool it has for enabling it is the fake.</p>
+
+<p>In Midje, you don&rsquo;t have mock objects like you do in object-oriented languages, instead you fake out functions. The simplest way you can fake out functions is by using the provided form within your fact.</p>
+
+<h2>Fakes</h2>
+
+<p>``` clojure
+(unfinished doubler)</p>
+
+<p>(defn six-times [x]
+  (* 3 (doubler x)))</p>
+
+<p>(fact
+  (six-times ..n..) => 12
+  (provided</p>
+
+<pre><code>(doubler ..n..) =&gt; 4))
+</code></pre>
+
+<p>```</p>
+
+<p>(Things that look like ..x.. are called Midje metaconstants.  For now just pretend they are constants, or skip to the end of this article for a link to the wiki.)</p>
+
+<p>In the above example we&rsquo;ve managed to define six-times in terms of a function, doubler, that is not yet defined (it is unfinished).</p>
+
+<p>Presumably the next thing we&rsquo;d do when designing a piece of software like this is to write the fact for doubler.</p>
+
+<p>``` clojure
+(fact
+  (doubler 2) => 4)</p>
+
+<p>(defn doubler [n] (* 2 n))
+```</p>
+
+<p>Or perhaps write a more thorough test:</p>
+
+<p>``` clojure
+(tabular
+  (fact (doubler n) => result)</p>
+
+<p>  n    result
+  -2   -4
+  -1   -2
+  0    0
+  1    2
+  2    4
+  100  200  )
+```</p>
+
+<p>(Tabular is a way to write one fact that runs against multiple input sets.)</p>
+
+<h2>The Myriad Uses of Fakes</h2>
+
+<p>Fakes have other uses besides simple stubbing.</p>
+
+<p>They can also be used to verify call counts. Imagine that you want to check that when some data is not valid there are no calls to send-email, but otherwise there will be 1 call sent to each recipient?</p>
+
+<p>We can write this kind of test using the :times n prerequisite option. (where n
+is some non-negative integer)</p>
+
+<p>``` clojure
+(fact &ldquo;don&rsquo;t send emails when data is invalid&rdquo;
+  (email-job :alex :brian) => irrelevant
+  (provided</p>
+
+<pre><code>(valid-data?) =&gt; false
+(email anything) =&gt; nil :times 0 ))
+</code></pre>
+
+<p>(fact &ldquo;when data is valid send one email to each recipient&rdquo;
+  (email-job :alex :brian) => irrelevant
+  (provided</p>
+
+<pre><code>(valid-data?) =&gt; true
+(email :alex) =&gt; nil :times 1
+(email :brian) =&gt; nil :times 1 ))
+</code></pre>
+
+<p>;; The implementation</p>
+
+<p>(unfinished valid-data? email)</p>
+
+<p>(defn email-job [&amp; dudes]
+  (when (valid-data?)</p>
+
+<pre><code>(doseq [d dudes]
+  (email d))))
+</code></pre>
+
+<p>```</p>
+
+<h2>Checkers</h2>
+
+<p>Using checkers we can even expand on the idea of what can be checked by a provided.  In the above examples first we used the anything checker to check that the email function was never called with anything. Then we simply checked that the email function was called with :alex and :brian once each.</p>
+
+<p>In this example we want to check that the query function is called with 10 things that look like query maps. To do that we first need to create our own checker that checks whether the parameter looks like a query.</p>
+
+<p><code>clojure
+(defchecker a-query [actual]
+  (and (:target-db actual) (:query-plan actual)))
+</code></p>
+
+<p>Midje will say that any arg matches this checker if it has a non-false/non-nil :target-db and :query-plan.</p>
+
+<p>Let&rsquo;s confirm query is called 10 times with params that look like queries.</p>
+
+<p>``` clojure
+(fact &ldquo;always sends 10 queries&rdquo;
+  (execute-queries) => irrelevant
+  (provided</p>
+
+<pre><code>(query a-query) =&gt; irrelevant :times 10))
+</code></pre>
+
+<p>;; The implementation</p>
+
+<p>(unfinished query)</p>
+
+<p>(defn execute-queries []
+  (dotimes [_ 10]</p>
+
+<pre><code>(query {:target-db :foo       ;; this will pass because it looks like a-query
+        :query-plan :bar})))  ;; but (query {:another "map"}) would not pass
+</code></pre>
+
+<p>```</p>
+
+<h2>The Fake Chain Gang</h2>
+
+<p>If you&rsquo;ve ever violated The Law of Demeter in an object-oriented language and then tried to use mock objects with the offending class, you may have experienced a chain of mocks.</p>
+
+<p>A chain of mocks is when you mock a method on a mock object that itself returns another mock object, that has a method on it mocked to <em>finally</em> return the value you want.</p>
+
+<p><code>java
+when(mockA.call()).thenReturn(mockB);
+when(mockB.call()).thenReturn(mockC);
+when(mockC.call()).thenReturn(42);
+</code></p>
+
+<p>In Midje the naive approach might be to write something like:</p>
+
+<p>``` clojure
+(fact
+  (foo) => 42
+  (provided</p>
+
+<pre><code>(baz) =&gt; ..a.. ;; remember, just pretend they're constants
+(bar ..a..) =&gt; ..b..
+(qux ..b..) =&gt; 42))
+</code></pre>
+
+<p>;; The implementation</p>
+
+<p>(unfinished baz bar qux)</p>
+
+<p>(defn foo []
+  (qux (bar (baz))))
+```</p>
+
+<p>Midje supplies a feature called Folded Prerequisites that enable a nice condensed syntax for this, though it is probably a code smell if you are doing this too often.</p>
+
+<p>``` clojure
+(fact
+  (foo) => 42
+  (provided</p>
+
+<pre><code>(qux (bar (baz))) =&gt; 42))
+</code></pre>
+
+<p>```</p>
+
+<h2>Fakes That Cover Multiple Facts</h2>
+
+<p>There are other ways to make fakes in Midje as well, by using the background macro and the against-background macros. These give you the ability to write fakes that cover a group of fakes.  I think I&rsquo;ll talk about them in another blog though time permitting.</p>
+
+<h2>Wiki Links</h2>
+
+<ul>
+<li><a href="https://github.com/marick/Midje/wiki/Metaconstants">Metaconstants</a></li>
+<li><a href="https://github.com/marick/Midje/wiki/Checkers-within-prerequisites">Using Checkers in Fakes</a></li>
+<li><a href="https://github.com/marick/Midje/wiki/Folded-prerequisites">Folded Prerequisites</a></li>
+</ul>
+
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[TDD in Midje in a Nutshell]]></title>
+    <link href="http://AlexBaranosky.github.io/2012/02/tdd-in-midje-in-nutshell.html"/>
+    <updated>2012-02-19T17:41:00-08:00</updated>
+    <id>http://AlexBaranosky.github.io/2012/02/tdd-in-midje-in-nutshell</id>
+    <content type="html"><![CDATA[<p><a href="https://github.com/marick/Midje">Midje</a> is a Clojure testing library supporting a top-down mock function style of development, but also equally well supports a bottom-up style.</p>
+
+<p>This is an introductory article, and depending on the response, there will be more articles about some of the intermediate and advanced features.</p>
+
+<h2>Elegant Examples</h2>
+
+<p>Midje starts with a simple premise: that tests should be elegant and readable.</p>
+
+<p>When was the last time you saw code samples like this in somebody&rsquo;s blog, gist, or book?</p>
+
+<h3>EXAMPLE:</h3>
+
+<p><em>As you can see the foo function always returns: a-ham-sandwich</em></p>
+
+<p><code>clojure
+(foo :bar :baz)
+;; =&gt; :a-ham-sandwich
+</code></p>
+
+<p>As developers, I think we write examples like this, because it reads well to us. We&rsquo;re used to this sort of pseudo-code example style, and so we can all tell at a glance what&rsquo;s happening.</p>
+
+<p>This is where Midje enters. The below is executable Clojure Midje code:</p>
+
+<p><code>clojure
+(fact "the foo function always returns :a-ham-sandwich"  
+  (foo :bar :baz) =&gt; :a-ham-sandwich)
+</code>
+You can take that code, and run it, now, and if you&rsquo;ve defined foo, then you can run <code>lein midje</code> or use midje-mode in Emacs to confirm that foo does in fact always return <code>:a-ham-sandwich</code>. (Forget for now that this particular fact doesn&rsquo;t very well cover every possible input. Using a generated test input style of testing could be very useful here, but that is for another blog.)</p>
+
+<h2>Describing Code That Doesn&rsquo;t Exist &ndash; Yet</h2>
+
+<p>Let&rsquo;s try describing some code that doesn&rsquo;t yet exist with these kinds of examples.  I think if we jot down some example cases, it will help us think more clearly about what we&rsquo;re trying to get our code doing.</p>
+
+<p>``` clojure
+(fact &ldquo;doubles odd numbers&rdquo; <br/>
+  (my-func 3) => 6)</p>
+
+<p>(fact &ldquo;triples even numbers&rdquo; <br/>
+  (my-func 4) => 12)
+```</p>
+
+<p>We can run these examples now. First thing you&rsquo;ll notice is that we&rsquo;re getting errors; that&rsquo;s of course because we have not yet written any code. Let&rsquo;s add the my-func function.</p>
+
+<p><code>clojure
+(defn my-func [n] )
+</code></p>
+
+<p>Let&rsquo;s be cautious and just try to get one of these facts working first.</p>
+
+<p><code>clojure
+(defn my-func [n]
+  (* 2 n))
+</code></p>
+
+<p>This seems to work&hellip; but for only the first fact. (There&rsquo;s a lot to be said for how effectively TDD can help you to stay focused on the task at hand.)</p>
+
+<p>So let&rsquo;s get my-func to pass the second fact as well.</p>
+
+<p>``` clojure
+(defn my-func [n]
+  (if (odd? n)</p>
+
+<pre><code>(* 2 n)
+(* 3 n))
+</code></pre>
+
+<p>```</p>
+
+<p>Running those examples again with lein midje or midje mode, we see that they do indeed pass.</p>
+
+<p>But there&rsquo;s one more thing. There is a little bit of duplication left in my-func. Let&rsquo;s take a second, and refactor this a little.</p>
+
+<p>``` clojure
+(defn my-func [n]
+  (let [multiplier (if (odd? n) 2 3)]</p>
+
+<pre><code>(* multiplier n))
+</code></pre>
+
+<p>```</p>
+
+<p>Now that we&rsquo;ve revealed a new concept of a multiplier in our code, it looks like we are done.  Our code works as advertised.</p>
+
+<h2>TDD Recap</h2>
+
+<p>You just learned:</p>
+
+<ul>
+<li>how to use Midje facts as a form of executable examples</li>
+<li>how to do TDD. Nice.</li>
+</ul>
+
+
+<p>I was sneaky just then. Without letting you know what I was doing, I&rsquo;ve walked you through the 4 steps of TDD. Decide what you are testing, write a failing test, make that test pass, refactor the code to have a good design.</p>
+
+<h2>TDD Steps:</h2>
+
+<ol>
+<li>We chose a new piece of functionality we wanted the code to have.</li>
+<li>We wrote a failing test.  We ran it.  We saw it fail. In Midje, we like to think of this step as taking some time to describe the facts of the future version of the code.</li>
+<li>We wrote as little code as possible to make the test pass. In Midje, we think of this step as bringing the code up to date with the new facts.</li>
+<li>We took some time to reorganize the code &ndash; giving it better structure, removing duplication, adjusting the naming, etc. Repeat.</li>
+</ol>
+
+
+<p>That&rsquo;s TDD in Midje in a nutshell.</p>
+
+<p>What did you think? Interested in hearing some more intermediate or advanced TDD and Midje concepts and exercises?</p>
+
+<h2>Technicalities</h2>
+
+<p>``` clojure
+;; project.clj<br/>
+(defproject my-project &ldquo;0.1.0"<br/>
+  :dev-dependencies [[lein-midje "1.0.8&rdquo;]</p>
+
+<pre><code>                 [midje "1.4.0-SNAPSHOT"]])   
+</code></pre>
+
+<p>;; example with ns macro<br/>
+(ns my-ns.t-core <br/>
+  (:use my-ns.core</p>
+
+<pre><code>    midje.sweet))  
+</code></pre>
+
+<p>(fact <br/>
+  (foo :bar :baz) => :a-ham-sandwich)
+```</p>
+]]></content>
+  </entry>
+  
+</feed>
