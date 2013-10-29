@@ -83,6 +83,8 @@
 
 <time datetime="2012-12-02T02:33:00-08:00" pubdate data-updated="true">Dec 2<span>nd</span>, 2012</time>
         
+         | <a href="#disqus_thread">Comments</a>
+        
       </p>
     
   </header>
@@ -176,33 +178,6 @@
 
 
 <p>Another thing you might notice in this code is that I purposely used the more verbose <code>#(get count-based-past-SLA-map %)</code> when I could have just used <code>count-based-past-SLA-map</code>, as it is already a function!  I prefer to err on the side of making my code as obvious as possible, so I try to avoid using data structures as functions except under a few special cases. But I guess that would be a different topic for a different blog.</p>
-
-<h2>Comments</h2>
-
-
-<div class='comments'>
-<div class='comment'>
-<div class='author'>Alex Baranosky</div>
-<div class='content'>
-I would probably do it that way if I wrote it today, too, without the `get`.  But I don&#39;t think it is a huge deal either way.</div>
-</div>
-<div class='comment'>
-<div class='author'>Timothy Baldridge</div>
-<div class='content'>
-+1 I&#39;d rather treat functions as maps, than introduce syntactic sugar with #() and %.</div>
-</div>
-<div class='comment'>
-<div class='author'>Alex Baranosky</div>
-<div class='content'>
-IMO this is an area where Clojure idioms venture into &quot;fancy&quot; territory.  It is a little Perlish.  At the end of the day it is a stylistic concern  and that kind of stuff is something that depends on what your team is most comfortable with. YMMV.</div>
-</div>
-<div class='comment'>
-<div class='author'>Unknown</div>
-<div class='content'>
-I don&#39;t agree with the last part&#8230; In clojure you just don&#39;t use get, it is more idiomatic the other way. Using get just make it more confusing IMHO</div>
-</div>
-</div>
-
 </div>
 
 
@@ -257,6 +232,12 @@ I don&#39;t agree with the last part&#8230; In clojure you just don&#39;t use ge
   </footer>
 </article>
 
+  <section>
+    <h1>Comments</h1>
+    <div id="disqus_thread" aria-live="polite"><noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+</div>
+  </section>
+
 </div>
 
 
@@ -269,6 +250,22 @@ I don&#39;t agree with the last part&#8230; In clojure you just don&#39;t use ge
 
 </footer>
   
+
+<script type="text/javascript">
+      var disqus_shortname = 'lispplusplus';
+      
+        
+        // var disqus_developer = 1;
+        var disqus_identifier = 'http://AlexBaranosky.github.io/blog/2012/12/02/reducing-complexity/';
+        var disqus_url = 'http://AlexBaranosky.github.io/blog/2012/12/02/reducing-complexity/';
+        var disqus_script = 'embed.js';
+      
+    (function () {
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      dsq.src = 'http://' + disqus_shortname + '.disqus.com/' + disqus_script;
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    }());
+</script>
 
 
 

@@ -4,7 +4,7 @@
   <title><![CDATA[Category: midje | (elegant coding from a more civilized age)]]></title>
   <link href="http://AlexBaranosky.github.io/blog/categories/midje/atom.xml" rel="self"/>
   <link href="http://AlexBaranosky.github.io/"/>
-  <updated>2013-10-28T18:57:19-07:00</updated>
+  <updated>2013-10-28T19:48:54-07:00</updated>
   <id>http://AlexBaranosky.github.io/</id>
   <author>
     <name><![CDATA[Alex Baranosky]]></name>
@@ -201,18 +201,6 @@ when(mockC.call()).thenReturn(42);
 <li><a href="https://github.com/marick/Midje/wiki/Folded-prerequisites">Folded Prerequisites</a></li>
 </ul>
 
-
-<h2>Comments</h2>
-
-
-<div class='comments'>
-<div class='comment'>
-<div class='author'>Hema Powar</div>
-<div class='content'>
-Hey, saw your write ups. It is quite interesting. Please share your profile at hema.powar@wipro.com if you are looking for job. We have projects for a reputed client in Cupertino CA. Think you might have guessed the client already :-) <br /><br />Reach out to me at 201-272-6303</div>
-</div>
-</div>
-
 ]]></content>
   </entry>
   
@@ -350,23 +338,6 @@ You can take that code, and run it, now, and if you&rsquo;ve defined foo, then y
 <p>(fact <br/>
   (foo :bar :baz) => :a-ham-sandwich)
 ```</p>
-
-<h2>Comments</h2>
-
-
-<div class='comments'>
-<div class='comment'>
-<div class='author'>id</div>
-<div class='content'>
-Look closely at this screenshot (note: with noscript allowing all scripts except for the notorious google tracking bs) : http://bit.ly/IyQf46<br /><br />&quot;As developers, I think we write examples like this (...)&quot;<br /><br />As developers, *we* know that to mark up *code* you don&#39;t use a *script* tag.<br />a) as a noscript user, your reader won&#39;t know which of the dozen bs js sources to (temporarily) allow<br />b) even if you allow js, it won&#39;t work. &quot;Can&#39;t find brush for: clj&quot;<br />c) you can&#39;t just read it. No JS: no content? Fail!<br /><br />For a bit of potential syntax highlighting, you break your article. I applaud you, dear developer.</div>
-</div>
-<div class='comment'>
-<div class='author'>nodename.com</div>
-<div class='content'>
-Yes, keep it going!</div>
-</div>
-</div>
-
 ]]></content>
   </entry>
   
