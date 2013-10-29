@@ -4,7 +4,7 @@
   <title><![CDATA[Category: testing | (elegant coding from a more civilized age)]]></title>
   <link href="http://AlexBaranosky.github.io/blog/categories/testing/atom.xml" rel="self"/>
   <link href="http://AlexBaranosky.github.io/"/>
-  <updated>2013-10-28T21:35:11-07:00</updated>
+  <updated>2013-10-28T21:58:23-07:00</updated>
   <id>http://AlexBaranosky.github.io/</id>
   <author>
     <name><![CDATA[Alex Baranosky]]></name>
@@ -15,9 +15,9 @@
   
   <entry>
     <title type="html"><![CDATA[The Evolution of a Macro]]></title>
-    <link href="http://AlexBaranosky.github.io/blog/2013/07/28/the-evolution-of-macro/"/>
+    <link href="http://AlexBaranosky.github.io/2013/07/the-evolution-of-macro.html"/>
     <updated>2013-07-28T02:59:00-07:00</updated>
-    <id>http://AlexBaranosky.github.io/blog/2013/07/28/the-evolution-of-macro</id>
+    <id>http://AlexBaranosky.github.io/2013/07/the-evolution-of-macro</id>
     <content type="html"><![CDATA[<p>At Runa, where I work, I work on a very large Clojure application which we service online merchants with in order to deliver real-time promotions to the browser. The runtime promotion determination core of the application is quite intricate and has both stateful and immutable parts. If not tested properly, you can make the mistake of letting any setup mutable state effect tests other than the intended test case.</p>
 
 <p>I thought it&rsquo;d be fun to walk you through how I developed a macro to handle this type of situation at work. I think it is a pretty interesting example of how macros can evolve and what considerations might go into how you architect a meaty macro.</p>

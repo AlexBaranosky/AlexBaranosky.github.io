@@ -4,7 +4,7 @@
   <title><![CDATA[(elegant coding from a more civilized age)]]></title>
   <link href="http://AlexBaranosky.github.io/atom.xml" rel="self"/>
   <link href="http://AlexBaranosky.github.io/"/>
-  <updated>2013-10-28T21:35:11-07:00</updated>
+  <updated>2013-10-28T21:58:23-07:00</updated>
   <id>http://AlexBaranosky.github.io/</id>
   <author>
     <name><![CDATA[Alex Baranosky]]></name>
@@ -15,9 +15,9 @@
   
   <entry>
     <title type="html"><![CDATA[A Mathematical Jaunt Via San Mateo Parking Meters]]></title>
-    <link href="http://AlexBaranosky.github.io/blog/2013/08/17/a-mathematical-jaunt-via-san-mateo/"/>
+    <link href="http://AlexBaranosky.github.io/2013/08/a-mathematical-jaunt-via-san-mateo.html"/>
     <updated>2013-08-17T13:37:00-07:00</updated>
-    <id>http://AlexBaranosky.github.io/blog/2013/08/17/a-mathematical-jaunt-via-san-mateo</id>
+    <id>http://AlexBaranosky.github.io/2013/08/a-mathematical-jaunt-via-san-mateo</id>
     <content type="html"><![CDATA[<p>Theeee other day some colleagues and I drove into downtown San Mateo for lunch.  An interesting decision had to be made: how many quarters to pay the meter.</p>
 
 <p>The price for parking is $0.25 per half hour. Your penny-pinching instincts suggest to only put in 2 quarters.  Let&rsquo;s say that a parking ticket for going over the meter is $40.</p>
@@ -83,9 +83,9 @@
   
   <entry>
     <title type="html"><![CDATA[IO as Data]]></title>
-    <link href="http://AlexBaranosky.github.io/blog/2013/08/08/io-as-data/"/>
+    <link href="http://AlexBaranosky.github.io/2013/08/io-as-data.html"/>
     <updated>2013-08-08T23:51:00-07:00</updated>
-    <id>http://AlexBaranosky.github.io/blog/2013/08/08/io-as-data</id>
+    <id>http://AlexBaranosky.github.io/2013/08/io-as-data</id>
     <content type="html"><![CDATA[<p>One way to make your Clojure code easier to test and to reason about is to quarantine your IO.  Amongst your team decide where you think the acceptable boundaries for IO are, and then don&rsquo;t do any IO except in those layers.  In my opinion the place to do IO is in the service layer, as described in Amit Rathore&rsquo;s talk at Clojure/West, <a href="http://www.infoq.com/presentations/DDD-Clojure">Domain-Driven Design With Clojure</a>.</p>
 
 <p>What this can lead to is code patterned where instead of executing IO straight away, you instead compute IO IOUs: a pure function determines that some piece of IO should occur, and returns that fact encoded in some form of data.</p>
@@ -139,9 +139,9 @@
   
   <entry>
     <title type="html"><![CDATA[The Evolution of a Macro]]></title>
-    <link href="http://AlexBaranosky.github.io/blog/2013/07/28/the-evolution-of-macro/"/>
+    <link href="http://AlexBaranosky.github.io/2013/07/the-evolution-of-macro.html"/>
     <updated>2013-07-28T02:59:00-07:00</updated>
-    <id>http://AlexBaranosky.github.io/blog/2013/07/28/the-evolution-of-macro</id>
+    <id>http://AlexBaranosky.github.io/2013/07/the-evolution-of-macro</id>
     <content type="html"><![CDATA[<p>At Runa, where I work, I work on a very large Clojure application which we service online merchants with in order to deliver real-time promotions to the browser. The runtime promotion determination core of the application is quite intricate and has both stateful and immutable parts. If not tested properly, you can make the mistake of letting any setup mutable state effect tests other than the intended test case.</p>
 
 <p>I thought it&rsquo;d be fun to walk you through how I developed a macro to handle this type of situation at work. I think it is a pretty interesting example of how macros can evolve and what considerations might go into how you architect a meaty macro.</p>
@@ -526,9 +526,9 @@ line of code that does the heavy lifting and a few more lines of asserts.</p>
   
   <entry>
     <title type="html"><![CDATA[Slamhound 1.3.0 - Cleaning up all your namespaces]]></title>
-    <link href="http://AlexBaranosky.github.io/blog/2012/12/26/slamhound-130-cleaning-up-all-your/"/>
+    <link href="http://AlexBaranosky.github.io/2012/12/slamhound-130-cleaning-up-all-your.html"/>
     <updated>2012-12-26T17:22:00-08:00</updated>
-    <id>http://AlexBaranosky.github.io/blog/2012/12/26/slamhound-130-cleaning-up-all-your</id>
+    <id>http://AlexBaranosky.github.io/2012/12/slamhound-130-cleaning-up-all-your</id>
     <content type="html"><![CDATA[<p>Cleaning up namespaces in Clojure is a chore.  So noone does it, and the namespaces get worse.</p>
 
 <p>Enter <a href="https://github.com/technomancy/slamhound">Slamhound</a>.  Slamhound&rsquo;s a library by Phil Hagelberg (the <a href="http://leiningen.org/">Leiningen</a> guy) that attempts to reconstruct a namespace for a file.</p>
@@ -563,9 +563,9 @@ line of code that does the heavy lifting and a few more lines of asserts.</p>
   
   <entry>
     <title type="html"><![CDATA[Reducing Complexity]]></title>
-    <link href="http://AlexBaranosky.github.io/blog/2012/12/02/reducing-complexity/"/>
+    <link href="http://AlexBaranosky.github.io/2012/12/reducing-complexity.html"/>
     <updated>2012-12-02T02:33:00-08:00</updated>
-    <id>http://AlexBaranosky.github.io/blog/2012/12/02/reducing-complexity</id>
+    <id>http://AlexBaranosky.github.io/2012/12/reducing-complexity</id>
     <content type="html"><![CDATA[<p>I had written some complicated looking code at work recently (shhh, let&rsquo;s keep that between us ok?). Something about it didn&rsquo;t seem right to me, but I was busy at the time so I wrote a TODO to come back and find a way to make it simpler.</p>
 
 <p>Since the code is so confusing it is virtually impossible to read at a glance and understand its intent, I will explain what it does.  It takes in a map where the keys are numbers of days over a given SLA, and the values are the number of shipments that were over the SLA by that amount of days.  The map actually can and does have more keys on it than that, but for the purposes of this article we can ignore them.  The function takes that map and converts it to a version where the values are not counts of the individual SLA, but instead the current running percentage totals.</p>
@@ -659,9 +659,9 @@ line of code that does the heavy lifting and a few more lines of asserts.</p>
   
   <entry>
     <title type="html"><![CDATA[The Many Faces of Midje Fakes]]></title>
-    <link href="http://AlexBaranosky.github.io/blog/2012/02/27/many-faces-of-midje-fakes/"/>
+    <link href="http://AlexBaranosky.github.io/2012/02/many-faces-of-midje-fakes.html"/>
     <updated>2012-02-27T19:21:00-08:00</updated>
-    <id>http://AlexBaranosky.github.io/blog/2012/02/27/many-faces-of-midje-fakes</id>
+    <id>http://AlexBaranosky.github.io/2012/02/many-faces-of-midje-fakes</id>
     <content type="html"><![CDATA[<p>The <a href="https://github.com/marick/Midje">Midje</a> Clojure testing library enables top-down development, and the primary tool it has for enabling it is the fake.</p>
 
 <p>In Midje, you don&rsquo;t have mock objects like you do in object-oriented languages, instead you fake out functions. The simplest way you can fake out functions is by using the provided form within your fact.</p>
@@ -909,9 +909,9 @@ is some non-negative integer)</p>
   
   <entry>
     <title type="html"><![CDATA[TDD in Midje in a Nutshell]]></title>
-    <link href="http://AlexBaranosky.github.io/blog/2012/02/19/tdd-in-midje-in-nutshell/"/>
+    <link href="http://AlexBaranosky.github.io/2012/02/tdd-in-midje-in-nutshell.html"/>
     <updated>2012-02-19T17:41:00-08:00</updated>
-    <id>http://AlexBaranosky.github.io/blog/2012/02/19/tdd-in-midje-in-nutshell</id>
+    <id>http://AlexBaranosky.github.io/2012/02/tdd-in-midje-in-nutshell</id>
     <content type="html"><![CDATA[<p><a href="https://github.com/marick/Midje">Midje</a> is a Clojure testing library supporting a top-down mock function style of development, but also equally well supports a bottom-up style.</p>
 
 <p>This is an introductory article, and depending on the response, there will be more articles about some of the intermediate and advanced features.</p>
@@ -1068,9 +1068,9 @@ is some non-negative integer)</p>
   
   <entry>
     <title type="html"><![CDATA[B.A.Z.N.E.X. - Boston Autonomous Zone Nerd Nexus]]></title>
-    <link href="http://AlexBaranosky.github.io/blog/2011/10/25/baznex-boston-autonomous-zone-nerd/"/>
+    <link href="http://AlexBaranosky.github.io/2011/10/baznex-boston-autonomous-zone-nerd.html"/>
     <updated>2011-10-25T16:08:00-07:00</updated>
-    <id>http://AlexBaranosky.github.io/blog/2011/10/25/baznex-boston-autonomous-zone-nerd</id>
+    <id>http://AlexBaranosky.github.io/2011/10/baznex-boston-autonomous-zone-nerd</id>
     <content type="html"><![CDATA[<h2>B.A.Z.N.E.X.: Boston Autonomous Zone Nerd Nexus</h2>
 
 <p>The short version is that we’re a self-directed organization focused on the joys of software development, community, and learning.</p>
@@ -1124,9 +1124,9 @@ is some non-negative integer)</p>
   
   <entry>
     <title type="html"><![CDATA[A Few Nice Features Of Clojure, Part #1: Using Macros To Freeze Time]]></title>
-    <link href="http://AlexBaranosky.github.io/blog/2011/10/23/few-nice-features-of-clojure-part-1/"/>
+    <link href="http://AlexBaranosky.github.io/2011/10/few-nice-features-of-clojure-part-1.html"/>
     <updated>2011-10-23T18:25:00-07:00</updated>
-    <id>http://AlexBaranosky.github.io/blog/2011/10/23/few-nice-features-of-clojure-part-1</id>
+    <id>http://AlexBaranosky.github.io/2011/10/few-nice-features-of-clojure-part-1</id>
     <content type="html"><![CDATA[<p>I thought it might be fun to show some of Clojure&rsquo;s features off by taking a look at how I use some of them in my own project <a href="https://github.com/AlexBaranosky/EmailClojMatic">EmailClojMatic</a>. I&rsquo;ve got 4 features in mind and will show one feature each post.</p>
 
 <p><strong>Problem #1:</strong></p>
@@ -1195,9 +1195,9 @@ is some non-negative integer)</p>
   
   <entry>
     <title type="html"><![CDATA[Simplicity is a Prerequisuite for Reliability]]></title>
-    <link href="http://AlexBaranosky.github.io/blog/2011/10/13/simplicity-is-prerequisuite-for/"/>
+    <link href="http://AlexBaranosky.github.io/2011/10/simplicity-is-prerequisuite-for.html"/>
     <updated>2011-10-13T09:04:00-07:00</updated>
-    <id>http://AlexBaranosky.github.io/blog/2011/10/13/simplicity-is-prerequisuite-for</id>
+    <id>http://AlexBaranosky.github.io/2011/10/simplicity-is-prerequisuite-for</id>
     <content type="html"><![CDATA[<p><em>(This blog post is based on <a href="http://www.codequarterly.com/2011/rich-hickey/">Rich Hickey&rsquo;s</a> keynote speech at Strange Loop 2011)</em></p>
 
 <h2>Word origins</h2>
@@ -1325,9 +1325,9 @@ Reap the benefits!</p>
   
   <entry>
     <title type="html"><![CDATA[A Scala Writer Monad]]></title>
-    <link href="http://AlexBaranosky.github.io/blog/2011/10/05/scala-writer-monad/"/>
+    <link href="http://AlexBaranosky.github.io/2011/10/scala-writer-monad.html"/>
     <updated>2011-10-05T20:00:00-07:00</updated>
-    <id>http://AlexBaranosky.github.io/blog/2011/10/05/scala-writer-monad</id>
+    <id>http://AlexBaranosky.github.io/2011/10/scala-writer-monad</id>
     <content type="html"><![CDATA[<p>In  Scala we’re quite familiar with the built in Monads:</p>
 
 <ul>

@@ -1,55 +1,47 @@
 <?xml version='1.0' encoding='UTF-8'?>
 <urlset xmlns='http://www.sitemaps.org/schemas/sitemap/0.9'>
     <url>
-        <loc>http://AlexBaranosky.github.io/blog/2011/10/05/scala-writer-monad/</loc>
+        <loc>http://AlexBaranosky.github.io/2011/10/scala-writer-monad.html</loc>
         <lastmod>2013-10-28T19:47:39-07:00</lastmod>
     </url>
     <url>
-        <loc>http://AlexBaranosky.github.io/blog/2011/10/13/simplicity-is-prerequisuite-for/</loc>
+        <loc>http://AlexBaranosky.github.io/2011/10/simplicity-is-prerequisuite-for.html</loc>
         <lastmod>2013-10-28T19:46:17-07:00</lastmod>
     </url>
     <url>
-        <loc>
-            http://AlexBaranosky.github.io/blog/2011/10/23/few-nice-features-of-clojure-part-1/
-        </loc>
+        <loc>http://AlexBaranosky.github.io/2011/10/few-nice-features-of-clojure-part-1.html</loc>
         <lastmod>2013-10-28T19:44:14-07:00</lastmod>
     </url>
     <url>
-        <loc>
-            http://AlexBaranosky.github.io/blog/2011/10/25/baznex-boston-autonomous-zone-nerd/
-        </loc>
+        <loc>http://AlexBaranosky.github.io/2011/10/baznex-boston-autonomous-zone-nerd.html</loc>
         <lastmod>2013-10-28T19:44:22-07:00</lastmod>
     </url>
     <url>
-        <loc>http://AlexBaranosky.github.io/blog/2012/02/19/tdd-in-midje-in-nutshell/</loc>
+        <loc>http://AlexBaranosky.github.io/2012/02/tdd-in-midje-in-nutshell.html</loc>
         <lastmod>2013-10-28T19:48:02-07:00</lastmod>
     </url>
     <url>
-        <loc>http://AlexBaranosky.github.io/blog/2012/02/27/many-faces-of-midje-fakes/</loc>
+        <loc>http://AlexBaranosky.github.io/2012/02/many-faces-of-midje-fakes.html</loc>
         <lastmod>2013-10-28T19:48:17-07:00</lastmod>
     </url>
     <url>
-        <loc>http://AlexBaranosky.github.io/blog/2012/12/02/reducing-complexity/</loc>
+        <loc>http://AlexBaranosky.github.io/2012/12/reducing-complexity.html</loc>
         <lastmod>2013-10-28T19:48:54-07:00</lastmod>
     </url>
     <url>
-        <loc>
-            http://AlexBaranosky.github.io/blog/2012/12/26/slamhound-130-cleaning-up-all-your/
-        </loc>
+        <loc>http://AlexBaranosky.github.io/2012/12/slamhound-130-cleaning-up-all-your.html</loc>
         <lastmod>2013-10-28T19:45:32-07:00</lastmod>
     </url>
     <url>
-        <loc>http://AlexBaranosky.github.io/blog/2013/07/28/the-evolution-of-macro/</loc>
+        <loc>http://AlexBaranosky.github.io/2013/07/the-evolution-of-macro.html</loc>
         <lastmod>2013-10-28T19:48:38-07:00</lastmod>
     </url>
     <url>
-        <loc>http://AlexBaranosky.github.io/blog/2013/08/08/io-as-data/</loc>
+        <loc>http://AlexBaranosky.github.io/2013/08/io-as-data.html</loc>
         <lastmod>2013-10-28T02:06:57-07:00</lastmod>
     </url>
     <url>
-        <loc>
-            http://AlexBaranosky.github.io/blog/2013/08/17/a-mathematical-jaunt-via-san-mateo/
-        </loc>
+        <loc>http://AlexBaranosky.github.io/2013/08/a-mathematical-jaunt-via-san-mateo.html</loc>
         <lastmod>2013-10-28T02:06:57-07:00</lastmod>
     </url>
     <url>

@@ -4,7 +4,7 @@
   <title><![CDATA[Category: functional-programming | (elegant coding from a more civilized age)]]></title>
   <link href="http://AlexBaranosky.github.io/blog/categories/functional-programming/atom.xml" rel="self"/>
   <link href="http://AlexBaranosky.github.io/"/>
-  <updated>2013-10-28T21:35:11-07:00</updated>
+  <updated>2013-10-28T21:58:23-07:00</updated>
   <id>http://AlexBaranosky.github.io/</id>
   <author>
     <name><![CDATA[Alex Baranosky]]></name>
@@ -15,9 +15,9 @@
   
   <entry>
     <title type="html"><![CDATA[IO as Data]]></title>
-    <link href="http://AlexBaranosky.github.io/blog/2013/08/08/io-as-data/"/>
+    <link href="http://AlexBaranosky.github.io/2013/08/io-as-data.html"/>
     <updated>2013-08-08T23:51:00-07:00</updated>
-    <id>http://AlexBaranosky.github.io/blog/2013/08/08/io-as-data</id>
+    <id>http://AlexBaranosky.github.io/2013/08/io-as-data</id>
     <content type="html"><![CDATA[<p>One way to make your Clojure code easier to test and to reason about is to quarantine your IO.  Amongst your team decide where you think the acceptable boundaries for IO are, and then don&rsquo;t do any IO except in those layers.  In my opinion the place to do IO is in the service layer, as described in Amit Rathore&rsquo;s talk at Clojure/West, <a href="http://www.infoq.com/presentations/DDD-Clojure">Domain-Driven Design With Clojure</a>.</p>
 
 <p>What this can lead to is code patterned where instead of executing IO straight away, you instead compute IO IOUs: a pure function determines that some piece of IO should occur, and returns that fact encoded in some form of data.</p>

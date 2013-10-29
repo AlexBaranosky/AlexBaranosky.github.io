@@ -4,7 +4,7 @@
   <title><![CDATA[Category: midje | (elegant coding from a more civilized age)]]></title>
   <link href="http://AlexBaranosky.github.io/blog/categories/midje/atom.xml" rel="self"/>
   <link href="http://AlexBaranosky.github.io/"/>
-  <updated>2013-10-28T21:35:11-07:00</updated>
+  <updated>2013-10-28T21:58:23-07:00</updated>
   <id>http://AlexBaranosky.github.io/</id>
   <author>
     <name><![CDATA[Alex Baranosky]]></name>
@@ -15,9 +15,9 @@
   
   <entry>
     <title type="html"><![CDATA[The Many Faces of Midje Fakes]]></title>
-    <link href="http://AlexBaranosky.github.io/blog/2012/02/27/many-faces-of-midje-fakes/"/>
+    <link href="http://AlexBaranosky.github.io/2012/02/many-faces-of-midje-fakes.html"/>
     <updated>2012-02-27T19:21:00-08:00</updated>
-    <id>http://AlexBaranosky.github.io/blog/2012/02/27/many-faces-of-midje-fakes</id>
+    <id>http://AlexBaranosky.github.io/2012/02/many-faces-of-midje-fakes</id>
     <content type="html"><![CDATA[<p>The <a href="https://github.com/marick/Midje">Midje</a> Clojure testing library enables top-down development, and the primary tool it has for enabling it is the fake.</p>
 
 <p>In Midje, you don&rsquo;t have mock objects like you do in object-oriented languages, instead you fake out functions. The simplest way you can fake out functions is by using the provided form within your fact.</p>
@@ -206,9 +206,9 @@ when(mockC.call()).thenReturn(42);
   
   <entry>
     <title type="html"><![CDATA[TDD in Midje in a Nutshell]]></title>
-    <link href="http://AlexBaranosky.github.io/blog/2012/02/19/tdd-in-midje-in-nutshell/"/>
+    <link href="http://AlexBaranosky.github.io/2012/02/tdd-in-midje-in-nutshell.html"/>
     <updated>2012-02-19T17:41:00-08:00</updated>
-    <id>http://AlexBaranosky.github.io/blog/2012/02/19/tdd-in-midje-in-nutshell</id>
+    <id>http://AlexBaranosky.github.io/2012/02/tdd-in-midje-in-nutshell</id>
     <content type="html"><![CDATA[<p><a href="https://github.com/marick/Midje">Midje</a> is a Clojure testing library supporting a top-down mock function style of development, but also equally well supports a bottom-up style.</p>
 
 <p>This is an introductory article, and depending on the response, there will be more articles about some of the intermediate and advanced features.</p>
