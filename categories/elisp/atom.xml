@@ -4,7 +4,7 @@
   <title><![CDATA[Category: elisp | (elegant coding from a more civilized age)]]></title>
   <link href="http://AlexBaranosky.github.io/categories/elisp/atom.xml" rel="self"/>
   <link href="http://AlexBaranosky.github.io/"/>
-  <updated>2013-10-29T01:40:30-07:00</updated>
+  <updated>2013-10-29T21:37:43-07:00</updated>
   <id>http://AlexBaranosky.github.io/</id>
   <author>
     <name><![CDATA[Alex Baranosky]]></name>
@@ -22,16 +22,16 @@
 
 <p>It is pretty likely that you may need to tweak this to get it to work on your machine. Specifically, you&rsquo;ll have to point the script to the correct location of you clojure-mode installation.</p>
 
-<p>This script calls <code>emacs</code> in <a href="http://www.emacswiki.org/emacs/BatchMode">Emacs in &mdash;batch mode</a>, which causes Emacs to run non-interacively.  We can use <code>--batch</code> to allow us to write scripts using Emacs.  Awesome, I know. :)</p>
+<p>This script calls <code>emacs</code> in <a href="http://www.emacswiki.org/emacs/BatchMode">Emacs in &mdash;batch mode</a>, which causes Emacs to run non-interacively.  We can use <code>--batch</code> to allow us to write scripts using Emacs.  Awesome, I know. :&ndash;)</p>
 
 <p>``` bash</p>
 
-<h1>!/bin/sh</h1>
+<h1>!/bin/bash</h1>
 
-<p>for file in <code>find /path/to/your/project/.</code>
+<p>find &ldquo;/path/to/your/project/.&rdquo; | while read file
 do</p>
 
-<pre><code>if [[ $file =~ ^.*\.clj$ ]]; then
+<pre><code>if [[ "$file" =~ ^.*\.clj$ ]]; then
     emacs "$file" \
           --batch \
           --eval="(progn 
