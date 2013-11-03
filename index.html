@@ -9,8 +9,7 @@
   <meta name="author" content="Alex Baranosky">
 
   
-  <meta name="description" content="
-">
+  <meta name="description" content="I was chatting with a friend on GChat today. I found having to context switch to my browser so much to be distracting, and half-jokingly and off- &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -63,6 +62,74 @@
     <div id="content">
       <div class="blog-index">
   
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/2013/11/emacs-and-gchat.html">Emacs and GChat</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2013-11-02T19:08:00-07:00" pubdate data-updated="true">Nov 2<span>nd</span>, 2013</time>
+        
+         | <a href="/2013/11/emacs-and-gchat.html#disqus_thread">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>I was chatting with a friend on GChat today.  I found having to context switch to my browser so much to be distracting, and half-jokingly and off-handedly said: &ldquo;I should setup my Emacs with GChat&rdquo;.</p>
+
+<p>A little Googling led me to <a href="http://www.emacswiki.org/emacs/GoogleTalk">Emacs Wiki: GoogleTalk</a>.</p>
+
+<p>These are the steps I used to get GChat running pretty quickly:</p>
+
+<ul>
+<li><code>M-x package-list-packages</code>, installing &lsquo;jabber&rsquo;</li>
+<li>add the below to my <code>init.el</code></li>
+</ul>
+
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class='scheme'><span class='line'><span class="p">(</span><span class="nf">setq</span> <span class="nv">jabber-account-list</span>
+</span><span class='line'>  <span class="o">&#39;</span><span class="p">((</span><span class="s">&quot;my.email@gmail.com&quot;</span>
+</span><span class='line'>     <span class="p">(</span><span class="nf">:network-server</span> <span class="o">.</span> <span class="s">&quot;talk.google.com&quot;</span><span class="p">)</span>
+</span><span class='line'>     <span class="p">(</span><span class="nf">:connection-type</span> <span class="o">.</span> <span class="nv">ssl</span><span class="p">))))</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p></p>
+
+<ul>
+<li><code>brew install gnutls</code> since I&rsquo;m on OSX</li>
+<li><code>M-x jabber-connect-all</code>, entering in my password at the prompt</li>
+<li>Then I can switch to the <code>*-jabber-roster-*</code> buffer, search for my friend&rsquo;s name in the list, and hit <code>RET</code> to start a chat with them.</li>
+</ul>
+
+</div>
+  
+  
+
+
+    </article>
   
   
     <article>
@@ -1467,91 +1534,6 @@ is some non-negative integer)</p>
 </span><span class='line'>  <span class="p">(</span><span class="nf">foo</span> <span class="ss">:bar</span> <span class="ss">:baz</span><span class="p">)</span> <span class="nv">=&gt;</span> <span class="ss">:a-ham-sandwich</span><span class="p">)</span>
 </span></code></pre></td></tr></table></div></figure>
 
-</div>
-  
-  
-
-
-    </article>
-  
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/2011/10/baznex-boston-autonomous-zone-nerd.html">B.A.Z.N.E.X. - Boston Autonomous Zone Nerd Nexus</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2011-10-25T16:08:00-07:00" pubdate data-updated="true">Oct 25<span>th</span>, 2011</time>
-        
-         | <a href="/2011/10/baznex-boston-autonomous-zone-nerd.html#disqus_thread">Comments</a>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><h2>B.A.Z.N.E.X.: Boston Autonomous Zone Nerd Nexus</h2>
-
-<p>The short version is that we’re a self-directed organization focused on the joys of software development, community, and learning.</p>
-
-<p><a href="http://baznex.herokuapp.com/">BAZNEX</a></p>
-
-<h2>Before we get into more details about what we are let’s start with what it is NOT</h2>
-
-<ul>
-<li>BAZNEX is not a meetup, but we do meet together.</li>
-<li>BAZNEX is not a forum, but we do discuss.</li>
-<li>BAZNEX is not a lesson, because there is no one teacher.</li>
-<li>BAZNEX  is not corporate sponsored, because we don’t have ulterior motives of  hiring you. We’re here to better ourselves and, ultimately, the world.  But who knows who you might meet, and what connections might be born.</li>
-<li>BAZNEX is not an open source programming club, but we might work on some open source projects.</li>
-<li>BAZNEX  is not a place to teach or be taught, but it is a place to grow  together with others, and to teach when called upon to do so.</li>
-<li>BAZNEX  has NO agenda. There are no lectures and no prearranged topics. You  come, you meet others, and you join the party. That good vibe you feel  here is what we call the Nerd Nexus.</li>
-<li>BAZNEX has no leader, but for the force of willpower generated through a phenomenon called a Nerd Nexus  &ndash; that moment with the vibes so delicious, and the love of computer  science and software development, as well as the inspired action for the  community, and for the history of computing.</li>
-</ul>
-
-
-<h2>Okay, BAZNEX isn’t any of those things. So what IS it??</h2>
-
-<ul>
-<li>BAZNEX is appreciating and revering the history of our profession.</li>
-<li>BAZNEX is sharing cool software stuff.</li>
-<li>BAZNEX is experiencing the greater nerd community of Boston.</li>
-<li>BAZNEX  is pairing together with others to share expertise, and to contribute  back to the Open Source community, and the community at large.</li>
-<li>BAZNEX is about the community of software developers.</li>
-<li>BAZNEX is about appreciating the venerable greats of our industry and mooching off of their awesomeness by osmosis.</li>
-<li>BAZNEX is about bringing up novices.</li>
-<li>Yes. BAZNEX is a software osmosis, free-form, group software block-party.</li>
-<li>On any given BAZNEX meeting (we call them nexuses) pretty much anything could happen.</li>
-<li>But  you can generally count on working on some code, and learning cool  stuff from those you pair up with at the nexus. You are encouraged to  write on the wiki what your interests are; that way others who are  interested in learning with you can say hello and you may pair together,  and vice versa!</li>
-<li>BAZNEX grows organically; your presence makes you a part of it all, and so your desires matter.</li>
-</ul>
-
-
-<h2>What you can do if you&rsquo;re interested in joining the Nexus</h2>
-
-<p>We&rsquo;re very much in a primordial state. We have had one small (successful!) gathering of three at the Andala coffee shop in Central Square Cambridge where we discussed why I love index cards, a bit about teaching others programming, took a look at the <a href="https://github.com/daveray/seesaw">SeeSaw</a> Clojure Swing-wrapping library, and took time to work on adding a feature to <a href="https://github.com/marick/Midje">Midje</a>, a Clojure testing/mocking framework.</p>
-
-<p>The current process we&rsquo;ve done (a total of one time) is to have everyone write down on index cards the different activities they might want to do at that gathering. Then put them all together and we split up into pairs or triples. Last gathering index cards were written such as &ldquo; want to look at SeeSaw?&rdquo;, &ldquo;talk more about teaching programming&rdquo;, &ldquo;fix the code Alex broke in Midje&rdquo;, &ldquo;do some remote pairing, or at least learn more about how we could&rdquo;, &ldquo;create a Content Management system in Clojure&rdquo;, &ldquo;can anyone help me with my 5 minute lightning talk on Clojure I&rsquo;m doing tomorrow?&rdquo;</p>
-
-<p>We&rsquo;re looking into finding larger venues preferably closer to downtown Boston for easier access by all of us, and places that can fit more of us than just a coffee shop can handle. Sprout in Davis Square is going to be our next location to try out on Wednesday Nov 1.</p>
-
-<p>Also, if this all is jiving with you, we&rsquo;ve got a <a href="http://groups.google.com/group/baznex">BAZNEX Google Group</a> we&rsquo;ve just started, where all future discussion of BAZNEX will transpire.</p>
-
-<p>Please tell anyone you think may be interested. The more the merrier. Any suggestions, offerings, additions, or displays of exuberance, also invited.</p>
 </div>
   
   

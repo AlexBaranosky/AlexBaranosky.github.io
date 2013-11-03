@@ -4,7 +4,7 @@
   <title><![CDATA[(elegant coding from a more civilized age)]]></title>
   <link href="http://AlexBaranosky.github.io/atom.xml" rel="self"/>
   <link href="http://AlexBaranosky.github.io/"/>
-  <updated>2013-11-02T18:15:22-07:00</updated>
+  <updated>2013-11-02T19:24:35-07:00</updated>
   <id>http://AlexBaranosky.github.io/</id>
   <author>
     <name><![CDATA[Alex Baranosky]]></name>
@@ -12,6 +12,45 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+  
+  <entry>
+    <title type="html"><![CDATA[Emacs and GChat]]></title>
+    <link href="http://AlexBaranosky.github.io/2013/11/emacs-and-gchat.html"/>
+    <updated>2013-11-02T19:08:00-07:00</updated>
+    <id>http://AlexBaranosky.github.io/2013/11/emacs-and-gchat</id>
+    <content type="html"><![CDATA[<p>I was chatting with a friend on GChat today.  I found having to context switch to my browser so much to be distracting, and half-jokingly and off-handedly said: &ldquo;I should setup my Emacs with GChat&rdquo;.</p>
+
+<p>A little Googling led me to <a href="http://www.emacswiki.org/emacs/GoogleTalk">Emacs Wiki: GoogleTalk</a>.</p>
+
+<p>These are the steps I used to get GChat running pretty quickly:</p>
+
+<ul>
+<li><code>M-x package-list-packages</code>, installing &lsquo;jabber&rsquo;</li>
+<li>add the below to my <code>init.el</code></li>
+</ul>
+
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class='scheme'><span class='line'><span class="p">(</span><span class="nf">setq</span> <span class="nv">jabber-account-list</span>
+</span><span class='line'>  <span class="o">&#39;</span><span class="p">((</span><span class="s">&quot;my.email@gmail.com&quot;</span>
+</span><span class='line'>     <span class="p">(</span><span class="nf">:network-server</span> <span class="o">.</span> <span class="s">&quot;talk.google.com&quot;</span><span class="p">)</span>
+</span><span class='line'>     <span class="p">(</span><span class="nf">:connection-type</span> <span class="o">.</span> <span class="nv">ssl</span><span class="p">))))</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p></p>
+
+<ul>
+<li><code>brew install gnutls</code> since I&rsquo;m on OSX</li>
+<li><code>M-x jabber-connect-all</code>, entering in my password at the prompt</li>
+<li>Then I can switch to the <code>*-jabber-roster-*</code> buffer, search for my friend&rsquo;s name in the list, and hit <code>RET</code> to start a chat with them.</li>
+</ul>
+
+]]></content>
+  </entry>
   
   <entry>
     <title type="html"><![CDATA[Church of Emacs]]></title>

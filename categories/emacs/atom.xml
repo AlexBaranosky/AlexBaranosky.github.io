@@ -4,7 +4,7 @@
   <title><![CDATA[Category: emacs | (elegant coding from a more civilized age)]]></title>
   <link href="http://AlexBaranosky.github.io/categories/emacs/atom.xml" rel="self"/>
   <link href="http://AlexBaranosky.github.io/"/>
-  <updated>2013-11-02T18:15:22-07:00</updated>
+  <updated>2013-11-02T19:24:35-07:00</updated>
   <id>http://AlexBaranosky.github.io/</id>
   <author>
     <name><![CDATA[Alex Baranosky]]></name>
@@ -12,6 +12,42 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+  
+  <entry>
+    <title type="html"><![CDATA[Emacs and GChat]]></title>
+    <link href="http://AlexBaranosky.github.io/2013/11/emacs-and-gchat.html"/>
+    <updated>2013-11-02T19:08:00-07:00</updated>
+    <id>http://AlexBaranosky.github.io/2013/11/emacs-and-gchat</id>
+    <content type="html"><![CDATA[<p>I was chatting with a friend on GChat today.  I found having to context switch to my browser so much to be distracting, and half-jokingly and off-handedly said: &ldquo;I should setup my Emacs with GChat&rdquo;.</p>
+
+<p>A little Googling led me to <a href="http://www.emacswiki.org/emacs/GoogleTalk">Emacs Wiki: GoogleTalk</a>.</p>
+
+<p>These are the steps I used to get GChat running pretty quickly:</p>
+
+<ul>
+<li><code>M-x package-list-packages</code>, installing &lsquo;jabber&rsquo;</li>
+<li>add the below to my <code>init.el</code></li>
+</ul>
+
+
+<p>``` scheme</p>
+
+<pre><code>(setq jabber-account-list           
+  '(("my.email@gmail.com"                 
+     (:network-server . "talk.google.com")           
+     (:connection-type . ssl))))                     
+</code></pre>
+
+<p>```</p>
+
+<ul>
+<li><code>brew install gnutls</code> since I&rsquo;m on OSX</li>
+<li><code>M-x jabber-connect-all</code>, entering in my password at the prompt</li>
+<li>Then I can switch to the <code>*-jabber-roster-*</code> buffer, search for my friend&rsquo;s name in the list, and hit <code>RET</code> to start a chat with them.</li>
+</ul>
+
+]]></content>
+  </entry>
   
   <entry>
     <title type="html"><![CDATA[Church of Emacs]]></title>
