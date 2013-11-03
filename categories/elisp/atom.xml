@@ -4,7 +4,7 @@
   <title><![CDATA[Category: elisp | (elegant coding from a more civilized age)]]></title>
   <link href="http://AlexBaranosky.github.io/categories/elisp/atom.xml" rel="self"/>
   <link href="http://AlexBaranosky.github.io/"/>
-  <updated>2013-10-29T21:37:43-07:00</updated>
+  <updated>2013-11-02T18:15:22-07:00</updated>
   <id>http://AlexBaranosky.github.io/</id>
   <author>
     <name><![CDATA[Alex Baranosky]]></name>
@@ -33,6 +33,36 @@ do</p>
 
 <pre><code>if [[ "$file" =~ ^.*\.clj$ ]]; then
     emacs "$file" \
+          --batch \
+          --eval="(progn 
+                    (load \"~/.emacs.d/elpa/clojure-mode-2.0.0/clojure-mode\")
+                    (require 'clojure-mode) 
+                    (clojure-mode) 
+                    (indent-region (point-min) (point-max)) 
+                    (save-buffer))"
+fi
+</code></pre>
+
+<p>done
+```</p>
+
+<h2>ShellCheck</h2>
+
+<p>I recently discovered <a href="http://www.shellcheck.net/about.html">ShellCheck</a>, a static analysis and linting tool for sh/bash scripts.  When I ran it on the original version of my above script it found a number of issues. I really recommend you use it on your own scripts.</p>
+
+<h4>Original Script</h4>
+
+<p>``` bash</p>
+
+<h1>!/bin/sh # bad, because I was using features on ly available in bash</h1>
+
+<h2>can cause unexpected behavior</h2>
+
+<p>for file in <code>find /path/to/your/project/.</code> ## `&rsquo;s deprecated
+do</p>
+
+<pre><code>if [[ $file =~ ^.*\.clj$ ]]; then ## [[ ]] only works in bash
+    emacs $file \                 ## ... surround $file with "'s
           --batch \
           --eval="(progn 
                     (load \"~/.emacs.d/elpa/clojure-mode-2.0.0/clojure-mode\")

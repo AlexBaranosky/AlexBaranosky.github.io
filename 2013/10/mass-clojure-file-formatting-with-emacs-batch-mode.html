@@ -128,6 +128,47 @@
 </span><span class='line'><span class="k">done</span>
 </span></code></pre></td></tr></table></div></figure>
 
+
+<h2>ShellCheck</h2>
+
+<p>I recently discovered <a href="http://www.shellcheck.net/about.html">ShellCheck</a>, a static analysis and linting tool for sh/bash scripts.  When I ran it on the original version of my above script it found a number of issues. I really recommend you use it on your own scripts.</p>
+
+<h4>Original Script</h4>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="c">#!/bin/sh # bad, because I was using features on ly available in bash</span>
+</span><span class='line'>
+</span><span class='line'><span class="c">## can cause unexpected behavior</span>
+</span><span class='line'><span class="k">for </span>file in <span class="sb">`</span>find /path/to/your/project/.<span class="sb">`</span> <span class="c">## `&#39;s deprecated</span>
+</span><span class='line'><span class="k">do</span>
+</span><span class='line'><span class="k">    if</span> <span class="o">[[</span> <span class="nv">$file</span> <span class="o">=</span>~ ^.*<span class="se">\.</span>clj<span class="nv">$ </span><span class="o">]]</span>; <span class="k">then</span> <span class="c">## [[ ]] only works in bash</span>
+</span><span class='line'>        emacs <span class="nv">$file</span> <span class="se">\ </span>                <span class="c">## ... surround $file with &quot;&#39;s</span>
+</span><span class='line'>              --batch <span class="se">\</span>
+</span><span class='line'>              --eval<span class="o">=</span><span class="s2">&quot;(progn </span>
+</span><span class='line'><span class="s2">                        (load \&quot;~/.emacs.d/elpa/clojure-mode-2.0.0/clojure-mode\&quot;)</span>
+</span><span class='line'><span class="s2">                        (require &#39;clojure-mode) </span>
+</span><span class='line'><span class="s2">                        (clojure-mode) </span>
+</span><span class='line'><span class="s2">                        (indent-region (point-min) (point-max)) </span>
+</span><span class='line'><span class="s2">                        (save-buffer))&quot;</span>
+</span><span class='line'>    <span class="k">fi</span>
+</span><span class='line'><span class="k">done</span>
+</span></code></pre></td></tr></table></div></figure>
+
 </div>
 
 
